@@ -1,8 +1,8 @@
 # BruceOS
 
-**Linux. But it's called Bruce.**
+**They call me Bruce.**
 
-A custom Linux distribution for people who want a system that just works — with built-in AI, a proper terminal experience, and gaming that actually runs. Named Bruce because every other distro is called Aurora or Nebula or something.
+An operating system for people who want a computer that just works — with built-in AI, a proper terminal, and gaming that actually runs. They call me Bruce.
 
 ---
 

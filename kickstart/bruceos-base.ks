@@ -1,5 +1,5 @@
 # BruceOS Base Kickstart — Fedora 43
-# "Linux. But it's called Bruce."
+# "They call me Bruce."
 #
 # Build: livemedia-creator --ks bruceos-base.ks --no-virt --resultdir /output
 # Target: x86_64 live ISO with GNOME + WhiteSur

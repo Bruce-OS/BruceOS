@@ -79,7 +79,7 @@ Read CLAUDE.md and MEMORY.md.
 
 We are building the bruceos.com landing page.
 Single HTML file, deployed to Cloudflare Pages.
-Tone: deadpan, dry humour, "Linux. But it's called Bruce."
+Tone: deadpan, dry humour, "They call me Bruce."
 NO frameworks, NO build steps, NO npm.
 
 Current task: [FILL THIS IN]

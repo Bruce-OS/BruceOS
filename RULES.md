@@ -52,7 +52,7 @@ Hard rules. Read before every session. Non-negotiable.
 ## Tone / Branding Rules
 
 - The OS is called **Bruce** or **BruceOS** — not "bruce-os", not "BRUCE"
-- Tagline: **"Linux. But it's called Bruce."**
+- Tagline: **"They call me Bruce."**
 - Tone: dry, deadpan, confident — never corporate, never cutesy
 - Documentation voice: direct, no filler words
 - Error messages: helpful and specific, never condescending

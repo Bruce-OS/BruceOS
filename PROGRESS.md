@@ -95,7 +95,7 @@
 ### Landing Page (bruceos.com)
 
 - [x] Single-page HTML/CSS (`site/index.html`)
-- [x] Hero section: "Linux. But it's called Bruce."
+- [x] Hero section: "They call me Bruce."
 - [x] Feature sections: AI / Terminal / Gaming / VFX
 - [x] Download section (placeholder)
 - [ ] Email signup (wait list backend)

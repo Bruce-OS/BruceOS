@@ -2,7 +2,7 @@
 
 ## What is BruceOS?
 
-BruceOS is a custom Linux distribution built on Fedora 43+. It targets three audiences:
+BruceOS is an operating system built on Fedora 43+. It targets three audiences:
 - **Kids & schools** (Raspberry Pi + x86_64)
 - **VFX/multimedia artists** (Blender, DaVinci, GIMP, Krita, Houdini-adjacent tools)
 - **Gamers** (Steam, Proton, DXVK, Looking Glass)
