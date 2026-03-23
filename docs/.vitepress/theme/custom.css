@@ -1,0 +1,163 @@
+/* ============================================================
+   BruceOS — VitePress Custom Theme Overrides
+   ============================================================ */
+
+/* ----- Brand color tokens ----- */
+:root {
+  --vp-c-brand-1: #10b981;
+  --vp-c-brand-2: #059669;
+  --vp-c-brand-3: #10b981;
+  --vp-c-brand-soft: rgba(16, 185, 129, 0.14);
+}
+
+/* ----- Dark mode (default) ----- */
+.dark {
+  --vp-c-bg: #0a0a0a;
+  --vp-c-bg-alt: #111111;
+  --vp-c-bg-elv: #141414;
+  --vp-c-bg-soft: #1a1a1a;
+
+  --vp-c-text-1: #f5f5f5;
+  --vp-c-text-2: #a1a1a1;
+  --vp-c-text-3: #787878;
+
+  --vp-c-divider: #2a2a2a;
+  --vp-c-border: #2a2a2a;
+  --vp-c-gutter: #181818;
+
+  --vp-c-brand-1: #10b981;
+  --vp-c-brand-2: #059669;
+  --vp-c-brand-3: #10b981;
+  --vp-c-brand-soft: rgba(16, 185, 129, 0.14);
+
+  --vp-code-block-bg: #111111;
+
+  --vp-button-brand-bg: #10b981;
+  --vp-button-brand-hover-bg: #059669;
+  --vp-button-brand-active-bg: #047857;
+  --vp-button-brand-text: #0a0a0a;
+
+  --vp-button-alt-bg: #1a1a1a;
+  --vp-button-alt-hover-bg: #222222;
+  --vp-button-alt-text: #f5f5f5;
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    #10b981 0%,
+    #059669 100%
+  );
+  --vp-home-hero-image-background-image: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.2) 0%,
+    transparent 70%
+  );
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+/* ----- Font families ----- */
+:root {
+  --vp-font-family-base: "Red Hat Text", "Inter", ui-sans-serif, system-ui,
+    sans-serif;
+  --vp-font-family-mono: "JetBrains Mono", ui-monospace, "Cascadia Code",
+    "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+}
+
+/* ----- Headings use Display weight ----- */
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3,
+.vp-doc h4,
+.vp-doc h5,
+.vp-doc h6,
+.VPHero .name,
+.VPHero .text,
+.VPFeature .title {
+  font-family: "Red Hat Display", "Red Hat Text", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+/* ----- Hero section polish ----- */
+.VPHero .name {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.VPHero .tagline {
+  font-family: "Red Hat Text", ui-sans-serif, system-ui, sans-serif;
+  color: #a1a1a1;
+  font-style: italic;
+}
+
+.VPHero .actions .VPButton.brand {
+  border-color: #10b981;
+  background-color: #10b981;
+  color: #0a0a0a;
+  font-weight: 600;
+}
+
+.VPHero .actions .VPButton.brand:hover {
+  border-color: #059669;
+  background-color: #059669;
+}
+
+.VPHero .actions .VPButton.alt {
+  border-color: #2a2a2a;
+  color: #f5f5f5;
+}
+
+.VPHero .actions .VPButton.alt:hover {
+  border-color: #3a3a3a;
+  background-color: #1a1a1a;
+}
+
+/* ----- Sidebar active indicator ----- */
+.VPSidebar .VPSidebarItem.is-active > .item > .link > .text {
+  color: #10b981;
+}
+
+/* ----- Nav bar branding ----- */
+.VPNavBar .title {
+  font-family: "Red Hat Display", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ----- Custom scrollbar for dark theme ----- */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+/* ----- Feature cards ----- */
+.dark .VPFeature {
+  background-color: #111111;
+  border-color: #2a2a2a;
+}
+
+.dark .VPFeature:hover {
+  border-color: #10b981;
+}
+
+/* ----- Footer ----- */
+.VPFooter {
+  border-top-color: #2a2a2a !important;
+}
+
+.dark .VPFooter .message,
+.dark .VPFooter .copyright {
+  color: #a1a1a1;
+}

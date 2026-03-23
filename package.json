@@ -1,0 +1,19 @@
+{
+  "name": "bruceos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BruceOS — They call me Bruce.",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bruce-OS/BruceOS.git"
+  },
+  "license": "GPL-2.0",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}

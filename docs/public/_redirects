@@ -1,0 +1,2 @@
+# Redirect old landing page paths if needed
+/site/*  /:splat  301
