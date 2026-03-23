@@ -159,6 +159,19 @@ GDMEOF
 echo "liveuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/liveuser
 chmod 440 /etc/sudoers.d/liveuser
 
+#--- Ungoogled Chromium via Flatpak (default browser) ---
+flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || \
+    echo "WARN: Ungoogled Chromium flatpak install failed — Firefox will be default"
+
+# Set Ungoogled Chromium as default browser
+mkdir -p /etc/xdg
+cat > /etc/xdg/mimeapps.list << 'MIMEEOF'
+[Default Applications]
+text/html=io.github.ungoogled_software.ungoogled_chromium.desktop
+x-scheme-handler/http=io.github.ungoogled_software.ungoogled_chromium.desktop
+x-scheme-handler/https=io.github.ungoogled_software.ungoogled_chromium.desktop
+MIMEEOF
+
 #--- CachyOS BORE kernel from COPR ---
 cat > /etc/yum.repos.d/cachyos-kernel.repo << 'REPOEOF'
 [copr:copr.fedorainfracloud.org:bieszczaders:kernel-cachyos]
@@ -425,7 +438,7 @@ picture-options='zoom'
 picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
-favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'io.github.ungoogled_software.ungoogled_chromium.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
 enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']
 
 [org/gnome/shell/extensions/dash-to-dock]
