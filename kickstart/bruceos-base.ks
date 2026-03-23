@@ -146,6 +146,7 @@ npm
 # Calamares installer (replaces Anaconda for installed system setup)
 calamares
 calamares-libs
+squashfs-tools
 
 # Live ISO / bootloader support
 dracut-live
