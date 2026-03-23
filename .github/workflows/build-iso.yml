@@ -1,0 +1,93 @@
+# BruceOS CI — Lint, ShellCheck, and ISO Build
+#
+# NOTE: The ISO build job uses podman with --privileged because
+# livemedia-creator requires loopback mounts and chroot access.
+# This runs on ubuntu-latest using podman. If podman --privileged
+# is restricted in your GitHub org, switch runs-on to a self-hosted
+# runner with podman and root access.
+
+name: BruceOS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Validate kickstart syntax ──────────────────────────
+  lint:
+    name: Kickstart Lint
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+    steps:
+      - name: Install pykickstart
+        run: dnf install -y pykickstart
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate kickstart files
+        run: |
+          exit_code=0
+          for ks in kickstart/*.ks; do
+            echo "--- Validating ${ks}"
+            if ! ksvalidator "${ks}"; then
+              echo "FAIL: ${ks}"
+              exit_code=1
+            fi
+          done
+          exit "${exit_code}"
+
+  # ── Job 2: ShellCheck all shell scripts ───────────────────────
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on all .sh files
+        run: |
+          shfiles=$(find . -name '*.sh' -type f)
+          if [ -z "${shfiles}" ]; then
+            echo "No .sh files found, skipping."
+            exit 0
+          fi
+          echo "Checking: ${shfiles}"
+          echo "${shfiles}" | xargs shellcheck --severity=warning
+
+  # ── Job 3: Build the ISO inside a privileged Podman container ─
+  build:
+    name: Build ISO
+    runs-on: ubuntu-latest
+    needs: [lint, shellcheck]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Build ISO via Podman (privileged)
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          podman run --rm --privileged \
+            -v "${WORKSPACE}:/build:Z" \
+            fedora:43 \
+            bash /build/iso/build.sh bruceos-base.ks
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BruceOS-ISO
+          path: output/BruceOS-*.iso
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,15 @@
+// BruceOS Zellij Configuration
+theme "catppuccin-mocha"
+
+default_shell "fish"
+
+pane_frames false
+
+keybinds {
+    shared {
+        bind "Alt h" { MoveFocusOrTab "Left"; }
+        bind "Alt l" { MoveFocusOrTab "Right"; }
+        bind "Alt j" { MoveFocus "Down"; }
+        bind "Alt k" { MoveFocus "Up"; }
+    }
+}
