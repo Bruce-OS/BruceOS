@@ -580,6 +580,10 @@ extend-height=false
 transparency-mode='DYNAMIC'
 background-opacity=0.6
 custom-theme-shrink=true
+show-trash=false
+show-mounts=false
+show-show-apps-button=false
+show-running=false
 
 [org/gnome/shell/extensions/user-theme]
 name='Adwaita-dark'
@@ -613,6 +617,9 @@ done
 
 # Remove default shellprocess.conf (has example "slowloris" command that crashes install)
 rm -f "${SYSROOT}/usr/share/calamares/modules/shellprocess.conf"
+
+# Remove default Calamares desktop entry (we use our own branded one)
+rm -f "${SYSROOT}/usr/share/applications/calamares.desktop"
 
 # Install BruceOS branding
 BRANDING_DEST="${SYSROOT}/usr/share/calamares/branding/bruceos"
