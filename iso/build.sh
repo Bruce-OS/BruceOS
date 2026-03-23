@@ -27,7 +27,11 @@ echo ""
 
 # Install build dependencies
 # anaconda is required for --no-virt mode
-dnf install -y lorax livecd-tools anaconda
+# grub2/shim packages are needed in the build root for lorax ISO assembly
+dnf install -y lorax livecd-tools anaconda \
+    grub2-efi-x64 grub2-efi-x64-modules grub2-efi-x64-cdboot \
+    grub2-pc grub2-pc-modules \
+    shim-x64 syslinux syslinux-nonlinux xorriso
 
 # livemedia-creator requires resultdir to NOT exist — remove if present
 if [ -d "${OUTPUT_DIR}" ]; then

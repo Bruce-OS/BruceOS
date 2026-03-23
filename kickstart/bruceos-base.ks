@@ -97,9 +97,13 @@ NetworkManager
 # Live ISO / bootloader support
 dracut-live
 grub2-pc
+grub2-pc-modules
 grub2-efi-x64
+grub2-efi-x64-modules
+grub2-efi-x64-cdboot
 shim-x64
 syslinux
+syslinux-nonlinux
 
 # Firmware
 linux-firmware
