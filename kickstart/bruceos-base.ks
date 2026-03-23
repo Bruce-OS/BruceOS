@@ -19,7 +19,7 @@ network --bootproto=dhcp --activate --hostname=bruceos
 #--------------------------------------
 zerombr
 clearpart --all --initlabel
-part / --fstype=ext4 --size=12288
+part / --fstype=ext4 --size=16384 --label=BruceOS
 
 #--------------------------------------
 # Bootloader

@@ -54,6 +54,7 @@ livemedia-creator \
     --resultdir "${OUTPUT_DIR}" \
     --project "BruceOS" \
     --releasever "43" \
+    --volid "BruceOS-1-0" \
     --make-iso \
     --iso-only \
     --iso-name "BruceOS-1.0-x86_64.iso"
