@@ -567,7 +567,7 @@ picture-options='zoom'
 picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
-favorite-apps=['install-bruceos.desktop', 'org.gnome.Nautilus.desktop', 'ghostty.desktop', 'chrome.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['install-bruceos.desktop']
 enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
 
 
