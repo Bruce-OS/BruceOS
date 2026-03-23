@@ -15,11 +15,11 @@ firewall --enabled --service=ssh
 network --bootproto=dhcp --activate
 
 #--------------------------------------
-# Disk layout — Btrfs with subvolumes
+# Disk layout
 #--------------------------------------
 zerombr
 clearpart --all --initlabel
-autopart --type=btrfs
+part / --fstype=ext4 --size=8192
 
 #--------------------------------------
 # Bootloader
