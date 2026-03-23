@@ -59,6 +59,15 @@ livemedia-creator \
     --iso-only \
     --iso-name "BruceOS-1.0-x86_64.iso"
 
+# Run build verification against the installed rootfs
+# (The rootfs is in the livemedia working directory if available)
+ROOTFS=$(find /var/tmp -maxdepth 2 -name "rootfs" -type d 2>/dev/null | head -1)
+if [ -n "${ROOTFS}" ] && [ -d "${ROOTFS}" ]; then
+    echo ""
+    echo "=== Running build verification ==="
+    chroot "${ROOTFS}" bash /build/iso/verify-build.sh || true
+fi
+
 echo ""
 echo "=== Build complete ==="
 echo "ISO: ${OUTPUT_DIR}/BruceOS-1.0-x86_64.iso"
