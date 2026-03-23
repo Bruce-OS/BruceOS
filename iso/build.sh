@@ -43,6 +43,17 @@ if [ -x "${PROJECT_DIR}/theme/generate-assets.sh" ]; then
     bash "${PROJECT_DIR}/theme/generate-assets.sh"
 fi
 
+# Pre-download yazi binary (not in any Fedora/COPR repo)
+if [ ! -f /usr/local/bin/yazi ]; then
+    echo "Downloading yazi..."
+    curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \
+        unzip -o /tmp/yazi.zip -d /tmp/yazi && \
+        cp /tmp/yazi/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin/ && \
+        chmod +x /usr/local/bin/yazi && \
+        rm -rf /tmp/yazi /tmp/yazi.zip && \
+        echo "yazi downloaded" || echo "WARN: yazi download failed"
+fi
+
 # livemedia-creator requires resultdir to NOT exist — remove if present
 if [ -d "${OUTPUT_DIR}" ]; then
     echo "Removing existing output directory..."

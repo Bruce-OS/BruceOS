@@ -1,8 +1,8 @@
 # BruceOS Base Kickstart — Fedora 43
 # "They call me Bruce."
 #
-# Build: livemedia-creator --ks bruceos-base.ks --no-virt --resultdir /output
-# Target: x86_64 live ISO with GNOME + WhiteSur
+# Architecture: ALL packages in repo + %packages (anaconda has network).
+# %post is config-only (no network). Flatpak apps install at first boot.
 
 #--------------------------------------
 # Installation settings
@@ -37,16 +37,25 @@ rootpw --lock
 user --name=liveuser --groups=wheel --password=liveuser --plaintext
 
 #--------------------------------------
-# Repos
+# Repos — ALL repos declared here so anaconda can fetch packages
 #--------------------------------------
-# Fedora 43 base repos (inherited from install media)
+# Fedora 43
 url --mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-43&arch=x86_64
 repo --name=updates --mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f43&arch=x86_64
+
+# RPM Fusion (declared as repos, NOT installed via dnf in %post)
 repo --name=rpmfusion-free --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-43&arch=x86_64
 repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=nonfree-fedora-43&arch=x86_64
 
+# COPR repos (direct baseurl, NOT dnf copr enable)
+repo --name=copr-cachyos --baseurl=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/fedora-43-x86_64/
+repo --name=copr-ghostty --baseurl=https://download.copr.fedorainfracloud.org/results/pgdev/ghostty/fedora-43-x86_64/
+repo --name=copr-starship --baseurl=https://download.copr.fedorainfracloud.org/results/atim/starship/fedora-43-x86_64/
+repo --name=copr-lazygit --baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazygit/fedora-43-x86_64/
+repo --name=copr-zellij --baseurl=https://download.copr.fedorainfracloud.org/results/varlad/zellij/fedora-43-x86_64/
+
 #--------------------------------------
-# Packages — Core desktop
+# Packages — everything installed here (anaconda has network)
 #--------------------------------------
 %packages
 # Base GNOME desktop
@@ -57,8 +66,6 @@ repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorl
 gnome-shell
 gdm
 gnome-tweaks
--gnome-terminal
--gnome-console
 gnome-software
 nautilus
 evince
@@ -66,8 +73,11 @@ eog
 gnome-calculator
 gnome-text-editor
 gnome-system-monitor
+-gnome-terminal
+-gnome-console
+-ptyxis
 
-# GNOME extensions (approved list — see RULES.md)
+# GNOME extensions
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
 gnome-shell-extension-desktop-icons-ng
@@ -75,7 +85,7 @@ gnome-shell-extension-desktop-icons-ng
 # VM clipboard support
 spice-vdagent
 
-# Plymouth boot splash
+# Plymouth
 plymouth
 plymouth-scripts
 plymouth-theme-spinner
@@ -87,16 +97,34 @@ google-noto-sans-mono-fonts
 jetbrains-mono-fonts-all
 cascadia-code-fonts
 
-# Terminal stack (packages in Fedora repos)
+# CachyOS BORE kernel (from COPR repo above)
+kernel-cachyos
+
+# Terminal stack — Ghostty + tools
+ghostty
 fish
+starship
 atuin
+zellij
+lazygit
 bat
+eza
 fzf
 zoxide
 ripgrep
 btop
 fastfetch
-# ghostty, starship, eza, yazi, zellij, lazygit installed via COPR in %post
+
+# RPM Fusion codecs (from repos above)
+rpmfusion-free-release
+rpmfusion-nonfree-release
+gstreamer1-plugins-bad-free
+gstreamer1-plugins-ugly
+gstreamer1-plugin-openh264
+ffmpeg
+
+# ZRAM
+zram-generator
 
 # Core system tools
 git
@@ -128,7 +156,7 @@ iwlwifi-*-firmware
 %end
 
 #--------------------------------------
-# Post-install — system configuration
+# Post-install — LOCAL CONFIG ONLY (no network in %post)
 #--------------------------------------
 %post --log=/root/bruceos-post.log
 #!/bin/bash
@@ -136,10 +164,9 @@ set -euo pipefail
 
 echo "=== BruceOS post-install starting ==="
 
-#--- Set graphical target and auto-login for live session ---
+#--- Graphical target + GDM auto-login ---
 systemctl set-default graphical.target
 
-# GDM auto-login for live user
 mkdir -p /etc/gdm
 cat > /etc/gdm/custom.conf << 'GDMEOF'
 [daemon]
@@ -156,92 +183,16 @@ WaylandEnable=true
 [debug]
 GDMEOF
 
-# Give liveuser passwordless sudo
+# Passwordless sudo for liveuser
 echo "liveuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/liveuser
 chmod 440 /etc/sudoers.d/liveuser
-
-#--- Ungoogled Chromium via Flatpak (default browser) ---
-flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || \
-    echo "WARN: Ungoogled Chromium flatpak install failed — Firefox will be default"
-
-# Set Ungoogled Chromium as default browser
-mkdir -p /etc/xdg
-cat > /etc/xdg/mimeapps.list << 'MIMEEOF'
-[Default Applications]
-text/html=io.github.ungoogled_software.ungoogled_chromium.desktop
-x-scheme-handler/http=io.github.ungoogled_software.ungoogled_chromium.desktop
-x-scheme-handler/https=io.github.ungoogled_software.ungoogled_chromium.desktop
-MIMEEOF
-
-#--- CachyOS BORE kernel from COPR ---
-cat > /etc/yum.repos.d/cachyos-kernel.repo << 'REPOEOF'
-[copr:copr.fedorainfracloud.org:bieszczaders:kernel-cachyos]
-name=CachyOS Kernel for Fedora
-baseurl=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/fedora-43-x86_64/
-type=rpm-md
-skip_if_unavailable=True
-gpgcheck=1
-gpgkey=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/pubkey.gpg
-repo_gpgcheck=0
-enabled=1
-enabled_metadata=1
-REPOEOF
-
-# Install CachyOS kernel — try each package individually
-dnf install -y kernel-cachyos || {
-    echo "WARN: CachyOS kernel-cachyos failed, trying with explicit repo"
-    dnf install -y --repo=copr:copr.fedorainfracloud.org:bieszczaders:kernel-cachyos kernel-cachyos || {
-        echo "WARN: CachyOS kernel not available, falling back to stock Fedora kernel"
-        dnf install -y kernel kernel-core kernel-modules
-    }
-}
-dnf install -y kernel-cachyos-devel-matched || echo "WARN: kernel-cachyos-devel-matched not available"
-
-#--- Terminal tools from COPR ---
-# Use explicit fedora-43-x86_64 chroot because os-release says "bruceos"
-dnf copr enable -y pgdev/ghostty fedora-43-x86_64
-dnf copr enable -y atim/starship fedora-43-x86_64
-dnf copr enable -y atim/lazygit fedora-43-x86_64
-dnf copr enable -y varlad/zellij fedora-43-x86_64
-
-# Install COPR packages individually (one failure shouldn't block others)
-for pkg in starship lazygit zellij; do
-    dnf install -y "$pkg" || echo "WARN: $pkg not available"
-done
-
-# Ghostty conflicts with ncurses-term on terminfo — force replace
-dnf download -y ghostty && rpm -i --replacefiles ghostty-*.rpm && rm -f ghostty-*.rpm || echo "WARN: ghostty not available"
-
-#--- Binary installs (not in Fedora or COPR) ---
-# eza — prebuilt binary from GitHub
-curl -sL https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz -C /usr/local/bin/ || echo "WARN: eza download failed"
-
-# yazi — prebuilt binary from GitHub
-curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \
-    unzip -o /tmp/yazi.zip -d /tmp/yazi && \
-    cp /tmp/yazi/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin/ && \
-    chmod +x /usr/local/bin/yazi && \
-    rm -rf /tmp/yazi /tmp/yazi.zip || echo "WARN: yazi download failed"
-
-#--- RPM Fusion repos (for multimedia codecs, NVIDIA drivers) ---
-dnf install -y \
-  https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-43.noarch.rpm \
-  https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-43.noarch.rpm || true
-
-#--- Multimedia codecs ---
-dnf install -y gstreamer1-plugins-bad-free gstreamer1-plugins-ugly \
-  gstreamer1-plugin-openh264 ffmpeg || true
-
-#--- Flathub for optional user apps ---
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 
 #--- Set Fish as default shell ---
 chsh -s /usr/bin/fish root
 chsh -s /usr/bin/fish liveuser
-# Set Fish as default for any future users
 sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd 2>/dev/null || true
 
-#--- Install system-wide Ghostty config ---
+#--- Ghostty config ---
 mkdir -p /etc/ghostty
 cat > /etc/ghostty/config << 'GHOSTTYEOF'
 font-family = JetBrains Mono
@@ -253,7 +204,7 @@ quit-after-last-window-closed = false
 keybind = ctrl+grave_accent=toggle_quick_terminal
 GHOSTTYEOF
 
-#--- Install system-wide Fish config ---
+#--- Fish config ---
 mkdir -p /etc/fish/conf.d
 cat > /etc/fish/conf.d/bruce.fish << 'FISHEOF'
 # BruceOS default Fish configuration
@@ -274,26 +225,7 @@ if status is-interactive; and not set -q BRUCE_GREETED
 end
 FISHEOF
 
-#--- Fastfetch BruceOS branding ---
-mkdir -p /etc/fastfetch
-cat > /etc/fastfetch/config.jsonc << 'FFCONFEOF'
-{
-  "logo": {
-    "source": "         ██████████\n        ████████████\n       ██████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n       █████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n        ████████████\n         ██████████",
-    "type": "data",
-    "color": { "1": "green" },
-    "padding": { "top": 1 }
-  },
-  "modules": [
-    "title", "separator",
-    "os", "kernel", "uptime", "packages",
-    "shell", "terminal", "cpu", "gpu",
-    "memory", "disk", "break", "colors"
-  ]
-}
-FFCONFEOF
-
-#--- Install system-wide Starship config ---
+#--- Starship config ---
 mkdir -p /etc/xdg
 cat > /etc/xdg/starship.toml << 'STARSHIPEOF'
 # BruceOS Starship Prompt
@@ -315,57 +247,26 @@ success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
 STARSHIPEOF
 
-#--- Plymouth BruceOS theme ---
-if [ -d /build/theme/plymouth/bruceos ]; then
-    mkdir -p /usr/share/plymouth/themes/bruceos
-    cp /build/theme/plymouth/bruceos/* /usr/share/plymouth/themes/bruceos/
-    plymouth-set-default-theme bruceos || true
-else
-    plymouth-set-default-theme spinner || true
-fi
-
-#--- BruceOS wallpaper ---
-if [ -f /build/theme/wallpaper.png ]; then
-    mkdir -p /usr/share/backgrounds/bruceos
-    cp /build/theme/wallpaper.png /usr/share/backgrounds/bruceos/wallpaper.png
-fi
-
-#--- White-label: replace Fedora logos with BruceOS ---
-if [ -d /build/theme/branding ]; then
-    for logo in /build/theme/branding/*.png /build/theme/branding/*.svg; do
-        [ -f "$logo" ] || continue
-        fname=$(basename "$logo")
-        # Replace in pixmaps
-        [ -f "/usr/share/pixmaps/$fname" ] && cp -f "$logo" "/usr/share/pixmaps/$fname"
-        # Replace in fedora-logos
-        [ -f "/usr/share/fedora-logos/$fname" ] && cp -f "$logo" "/usr/share/fedora-logos/$fname"
-    done
-fi
-
-#--- Custom app icons ---
-if [ -f /build/theme/branding/ghostty.png ]; then
-    cp /build/theme/branding/ghostty.png /usr/share/pixmaps/ghostty.png
-    # Override the desktop file icon
-    if [ -f /usr/share/applications/com.mitchellh.ghostty.desktop ]; then
-        sed -i 's|^Icon=.*|Icon=/usr/share/pixmaps/ghostty.png|' /usr/share/applications/com.mitchellh.ghostty.desktop
-    fi
-fi
-
-#--- GPU auto-detection ---
-# Detect GPU and install appropriate drivers
-if lspci | grep -qi nvidia; then
-    dnf install -y akmod-nvidia xorg-x11-drv-nvidia || true
-    echo "NVIDIA GPU detected — proprietary drivers installed"
-elif lspci | grep -qi "amd.*radeon\|amd.*graphics"; then
-    # AMD uses kernel amdgpu driver (already included)
-    echo "AMD GPU detected — using kernel amdgpu driver"
-elif lspci | grep -qi "intel.*graphics\|intel.*uhd\|intel.*iris"; then
-    # Intel uses kernel i915 driver (already included)
-    echo "Intel GPU detected — using kernel i915 driver"
-fi
+#--- Fastfetch branding ---
+mkdir -p /etc/fastfetch
+cat > /etc/fastfetch/config.jsonc << 'FFCONFEOF'
+{
+  "logo": {
+    "source": "         ██████████\n        ████████████\n       ██████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n       █████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n        ████████████\n         ██████████",
+    "type": "data",
+    "color": { "1": "green" },
+    "padding": { "top": 1 }
+  },
+  "modules": [
+    "title", "separator",
+    "os", "kernel", "uptime", "packages",
+    "shell", "terminal", "cpu", "gpu",
+    "memory", "disk", "break", "colors"
+  ]
+}
+FFCONFEOF
 
 #--- Performance tuning ---
-# vm.max_map_count for gaming and large applications
 cat > /etc/sysctl.d/99-bruceos.conf << 'SYSCTLEOF'
 # BruceOS performance tuning
 vm.max_map_count = 1048576
@@ -373,14 +274,54 @@ vm.swappiness = 10
 SYSCTLEOF
 
 #--- ZRAM swap ---
-dnf install -y zram-generator || true
 cat > /etc/systemd/zram-generator.conf << 'ZRAMEOF'
 [zram0]
 zram-size = ram / 2
 compression-algorithm = zstd
 ZRAMEOF
 
-#--- Set system branding ---
+#--- Plymouth ---
+plymouth-set-default-theme spinner || true
+
+#--- Flathub remote (local config, no download) ---
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+#--- First-boot service for Flatpak apps ---
+cat > /etc/systemd/system/bruceos-first-boot.service << 'UNITEOF'
+[Unit]
+Description=BruceOS First Boot Setup
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/bruceos-first-boot-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/bruceos-first-boot.sh
+ExecStartPost=/usr/bin/touch /var/lib/bruceos-first-boot-done
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNITEOF
+
+cat > /usr/libexec/bruceos-first-boot.sh << 'SCRIPTEOF'
+#!/bin/bash
+# BruceOS first-boot: install Flatpak apps
+flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || true
+SCRIPTEOF
+chmod +x /usr/libexec/bruceos-first-boot.sh
+systemctl enable bruceos-first-boot.service
+
+#--- Default browser (Ungoogled Chromium when available, Firefox fallback) ---
+mkdir -p /etc/xdg
+cat > /etc/xdg/mimeapps.list << 'MIMEEOF'
+[Default Applications]
+text/html=io.github.ungoogled_software.ungoogled_chromium.desktop
+x-scheme-handler/http=io.github.ungoogled_software.ungoogled_chromium.desktop
+x-scheme-handler/https=io.github.ungoogled_software.ungoogled_chromium.desktop
+MIMEEOF
+
+#--- Set system branding (MUST be last — after all dnf operations) ---
 cat > /etc/os-release << 'OSEOF'
 NAME="BruceOS"
 VERSION="1.0"
@@ -389,7 +330,7 @@ ID_LIKE=fedora
 VERSION_ID=1.0
 PLATFORM_ID="platform:f43"
 PRETTY_NAME="BruceOS 1.0"
-ANSI_COLOR="0;34"
+ANSI_COLOR="0;38;2;16;185;129"
 LOGO=bruceos
 CPE_NAME="cpe:/o:bruceos:bruceos:1.0"
 HOME_URL="https://bruceos.com"
@@ -397,14 +338,14 @@ SUPPORT_URL="https://github.com/Bruce-OS/BruceOS/issues"
 BUG_REPORT_URL="https://github.com/Bruce-OS/BruceOS/issues"
 VARIANT="Workstation"
 VARIANT_ID=workstation
-DOCUMENTATION_URL="https://github.com/Bruce-OS/BruceOS"
+DOCUMENTATION_URL="https://bruceos.com/guide/getting-started"
 OSEOF
 
 echo "=== BruceOS post-install complete ==="
 %end
 
 #--------------------------------------
-# Post-install — GNOME desktop theming (no network required)
+# Post-install — GNOME theming + assets (nochroot, access to /build/)
 #--------------------------------------
 %post --nochroot --log=/mnt/sysimage/root/bruceos-theme.log
 #!/bin/bash
@@ -414,7 +355,38 @@ echo "=== Configuring BruceOS GNOME desktop ==="
 
 SYSROOT=/mnt/sysimage
 
-#--- Set GNOME defaults via dconf ---
+#--- BruceOS wallpaper ---
+if [ -f /build/theme/wallpaper.png ]; then
+    mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
+    cp /build/theme/wallpaper.png "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.png"
+elif [ -f /build/theme/wallpaper.svg ]; then
+    # Generate from SVG if rsvg-convert available
+    if command -v rsvg-convert &>/dev/null; then
+        mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
+        rsvg-convert -w 3840 -h 2160 /build/theme/wallpaper.svg -o "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.png"
+    fi
+fi
+
+#--- White-label: replace Fedora logos with BruceOS ---
+if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; then
+    LOGO=/build/theme/bruceos-logo.svg
+    rsvg-convert -w 48 -h 48 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/fedora-gdm-logo.png" 2>/dev/null || true
+    rsvg-convert -w 16 -h 16 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/fedora-logo-small.png" 2>/dev/null || true
+    rsvg-convert -w 256 -h 256 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/fedora-logo.png" 2>/dev/null || true
+    rsvg-convert -w 256 -h 256 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/fedora-logo-sprite.png" 2>/dev/null || true
+    rsvg-convert -w 128 -h 128 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/system-logo-white.png" 2>/dev/null || true
+    cp "$LOGO" "${SYSROOT}/usr/share/pixmaps/fedora-logo-sprite.svg" 2>/dev/null || true
+fi
+
+#--- Custom Ghostty icon ---
+if [ -f /build/theme/branding/ghostty.png ]; then
+    cp /build/theme/branding/ghostty.png "${SYSROOT}/usr/share/pixmaps/ghostty.png"
+    if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; then
+        sed -i 's|^Icon=.*|Icon=/usr/share/pixmaps/ghostty.png|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
+    fi
+fi
+
+#--- GNOME dconf defaults ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cat > "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
 [org/gnome/desktop/interface]
@@ -462,14 +434,14 @@ custom-theme-shrink=true
 name='Adwaita-dark'
 DCONFEOF
 
-# Lock dark mode so it can't be accidentally toggled
+# Lock dark mode
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d/locks"
 cat > "${SYSROOT}/etc/dconf/db/local.d/locks/01-bruceos" << 'LOCKEOF'
 /org/gnome/desktop/interface/color-scheme
 /org/gnome/desktop/interface/gtk-theme
 LOCKEOF
 
-# Compile dconf database
+# Compile dconf
 chroot "${SYSROOT}" dconf update || true
 
 # Flatpak dark mode
