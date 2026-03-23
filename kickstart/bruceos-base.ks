@@ -451,7 +451,13 @@ for bin in eza yazi; do
 done
 
 # DING extension is installed at first boot (needs network)
-# See bruceos-first-boot.sh
+
+#--- BruceOS icon theme (Adwaita-green with emerald accents) ---
+if [ -d /build/theme/icons-bruceos ]; then
+    cp -r /build/theme/icons-bruceos "${SYSROOT}/usr/share/icons/BruceOS"
+    chroot "${SYSROOT}" gtk-update-icon-cache /usr/share/icons/BruceOS 2>/dev/null || true
+    echo "BruceOS icon theme installed"
+fi
 
 #--- BruceOS wallpaper ---
 if [ -f /build/theme/wallpaper.png ]; then
@@ -489,7 +495,7 @@ mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cat > "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
 [org/gnome/desktop/interface]
 gtk-theme='Adwaita-dark'
-icon-theme='Adwaita'
+icon-theme='BruceOS'
 cursor-theme='Adwaita'
 font-name='Noto Sans 11'
 document-font-name='Noto Sans 11'
@@ -509,7 +515,7 @@ picture-options='zoom'
 picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
-favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'chrome.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['install-bruceos.desktop', 'org.gnome.Nautilus.desktop', 'ghostty.desktop', 'chrome.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
 enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
 
 
@@ -538,6 +544,72 @@ chroot "${SYSROOT}" dconf update || true
 
 # Flatpak dark mode
 chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null || true
+
+#--- Calamares installer branding + config ---
+echo "=== Configuring Calamares installer ==="
+
+# Install Calamares settings.conf
+mkdir -p "${SYSROOT}/etc/calamares"
+cp /build/installer/settings.conf "${SYSROOT}/etc/calamares/settings.conf"
+
+# Install Calamares module configs
+mkdir -p "${SYSROOT}/etc/calamares/modules"
+for conf in /build/installer/modules/*.conf; do
+    [ -f "$conf" ] && cp "$conf" "${SYSROOT}/etc/calamares/modules/"
+done
+
+# Install BruceOS branding
+BRANDING_DEST="${SYSROOT}/usr/share/calamares/branding/bruceos"
+mkdir -p "${BRANDING_DEST}"
+cp /build/installer/branding/bruceos/branding.desc "${BRANDING_DEST}/"
+cp /build/installer/branding/bruceos/show.qml "${BRANDING_DEST}/"
+cp /build/installer/branding/bruceos/stylesheet.qss "${BRANDING_DEST}/"
+
+# Copy logo into branding directory
+if [ -f /build/theme/bruceos-logo.svg ]; then
+    cp /build/theme/bruceos-logo.svg "${BRANDING_DEST}/bruceos-logo.svg"
+fi
+
+# Generate a welcome image from the logo if rsvg-convert is available
+if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; then
+    rsvg-convert -w 480 -h 480 /build/theme/bruceos-logo.svg \
+        -o "${BRANDING_DEST}/bruceos-welcome.png" 2>/dev/null || true
+fi
+
+# "Install BruceOS" desktop shortcut — on the live desktop and in applications
+cp /build/installer/install-bruceos.desktop "${SYSROOT}/usr/share/applications/install-bruceos.desktop"
+
+# Copy to liveuser desktop so it appears as an icon on the desktop
+mkdir -p "${SYSROOT}/home/liveuser/Desktop"
+cp /build/installer/install-bruceos.desktop "${SYSROOT}/home/liveuser/Desktop/install-bruceos.desktop"
+chmod +x "${SYSROOT}/home/liveuser/Desktop/install-bruceos.desktop"
+chroot "${SYSROOT}" chown -R liveuser:liveuser /home/liveuser/Desktop 2>/dev/null || true
+
+# Trust the desktop file so GNOME does not show "untrusted" warning
+mkdir -p "${SYSROOT}/home/liveuser/.local/share"
+chroot "${SYSROOT}" bash -c 'dbus-launch gio set /home/liveuser/Desktop/install-bruceos.desktop metadata::trusted true 2>/dev/null' || true
+
+# Add Calamares icon (reuse the BruceOS logo)
+if [ -f /build/theme/bruceos-logo.svg ]; then
+    cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/pixmaps/bruceos-logo.svg"
+    if command -v rsvg-convert &>/dev/null; then
+        rsvg-convert -w 256 -h 256 /build/theme/bruceos-logo.svg \
+            -o "${SYSROOT}/usr/share/pixmaps/bruceos-logo.png" 2>/dev/null || true
+    fi
+fi
+
+# Polkit rule: allow liveuser to run Calamares without password prompt
+mkdir -p "${SYSROOT}/etc/polkit-1/rules.d"
+cat > "${SYSROOT}/etc/polkit-1/rules.d/49-bruceos-live-installer.rules" << 'POLKITEOF'
+// Allow liveuser to run Calamares without authentication
+polkit.addRule(function(action, subject) {
+    if (subject.user == "liveuser" && action.id == "org.freedesktop.policykit.exec") {
+        return polkit.Result.YES;
+    }
+});
+POLKITEOF
+
+echo "=== Calamares installer configured ==="
 
 echo "=== BruceOS GNOME desktop configured ==="
 %end
