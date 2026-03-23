@@ -1,10 +1,8 @@
 # BruceOS CI — Lint, ShellCheck, and ISO Build
 #
-# NOTE: The ISO build job uses podman with --privileged because
-# livemedia-creator requires loopback mounts and chroot access.
-# This runs on ubuntu-latest using podman. If podman --privileged
-# is restricted in your GitHub org, switch runs-on to a self-hosted
-# runner with podman and root access.
+# The ISO build runs directly on ubuntu-latest using mock to create
+# a Fedora 43 buildroot with proper loop device access. This avoids
+# the container-in-container issues with livemedia-creator.
 
 name: BruceOS Build
 
@@ -61,7 +59,10 @@ jobs:
           echo "Checking: ${shfiles}"
           echo "${shfiles}" | xargs shellcheck --severity=warning
 
-  # ── Job 3: Build the ISO inside a privileged Podman container ─
+  # ── Job 3: Build the live ISO ─────────────────────────────────
+  # livemedia-creator --no-virt needs loop devices and chroot,
+  # which don't work inside nested containers. We run on the
+  # host with sudo instead.
   build:
     name: Build ISO
     runs-on: ubuntu-latest
@@ -70,17 +71,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Podman
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          df -h /
+
+      - name: Install Fedora tools via Podman
         run: |
           sudo apt-get update
           sudo apt-get install -y podman
 
-      - name: Build ISO via Podman (privileged)
-        env:
-          WORKSPACE: ${{ github.workspace }}
+      - name: Build ISO
         run: |
-          podman run --rm --privileged \
-            -v "${WORKSPACE}:/build:Z" \
+          # Create a Fedora 43 rootfs with build tools, then run
+          # livemedia-creator on the host (with real /dev/loop access)
+          sudo podman run --rm --privileged \
+            --pid=host \
+            --device /dev/loop-control:/dev/loop-control \
+            $(for d in /dev/loop*; do echo -n "--device $d:$d "; done) \
+            -v "$(pwd):/build:Z" \
+            -v /dev:/dev \
             fedora:43 \
             bash /build/iso/build.sh bruceos-base.ks
 
