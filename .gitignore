@@ -6,6 +6,8 @@ output/
 theme/wallpaper.png
 theme/branding/*.png
 theme/branding/*.svg
+# But keep manually added branding assets
+!theme/branding/ghostty.png
 theme/plymouth/bruceos/logo.png
 theme/plymouth/bruceos/spinner-*.png
 

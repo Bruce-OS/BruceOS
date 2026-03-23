@@ -257,27 +257,13 @@ FISHEOF
 
 #--- Fastfetch BruceOS branding ---
 mkdir -p /etc/fastfetch
-cat > /etc/fastfetch/logo.txt << 'FFLOGOEOF'
-${c1}         ██████████
-        ████████████
-       ██████  ██████
-       █████    █████
-       █████  ██████
-       ██████████████
-       █████  ██████
-       █████    █████
-       █████  ██████
-       ██████████████
-        ████████████
-         ██████████
-FFLOGOEOF
-
 cat > /etc/fastfetch/config.jsonc << 'FFCONFEOF'
 {
   "logo": {
-    "source": "/etc/fastfetch/logo.txt",
-    "type": "raw",
-    "color": { "1": "green" }
+    "source": "         ██████████\n        ████████████\n       ██████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n       █████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n        ████████████\n         ██████████",
+    "type": "data",
+    "color": { "1": "green" },
+    "padding": { "top": 1 }
   },
   "modules": [
     "title", "separator",
@@ -335,6 +321,15 @@ if [ -d /build/theme/branding ]; then
         # Replace in fedora-logos
         [ -f "/usr/share/fedora-logos/$fname" ] && cp -f "$logo" "/usr/share/fedora-logos/$fname"
     done
+fi
+
+#--- Custom app icons ---
+if [ -f /build/theme/branding/ghostty.png ]; then
+    cp /build/theme/branding/ghostty.png /usr/share/pixmaps/ghostty.png
+    # Override the desktop file icon
+    if [ -f /usr/share/applications/com.mitchellh.ghostty.desktop ]; then
+        sed -i 's|^Icon=.*|Icon=/usr/share/pixmaps/ghostty.png|' /usr/share/applications/com.mitchellh.ghostty.desktop
+    fi
 fi
 
 #--- GPU auto-detection ---
