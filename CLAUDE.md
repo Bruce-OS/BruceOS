@@ -81,8 +81,12 @@ bruceos/
 - ISO built in Podman container for reproducibility
 - Always validate kickstart before building: `ksvalidator kickstart/bruceos-base.ks`
 - Build locally with: `sudo podman run --rm --privileged --pid=host --security-opt label=disable -v /dev:/dev -v /path/to/BruceOS:/build fedora:43 bash -c "bash /build/iso/build.sh bruceos-base.ks"`
-- Use `/build` slash command for one-step local builds
 - Test ISOs in GNOME Boxes (Fedora 43 profile, UEFI, 4GB+ RAM)
+
+### Slash Commands (`.claude/commands/`)
+- `/build` — Build ISO locally via Podman (`flatpak-spawn --host sudo podman run ...`)
+- `/docs` — Regenerate reference docs from kickstart/config source files
+- `/deploy` — Build VitePress docs and deploy to Cloudflare Pages via wrangler
 
 ### Package Naming Convention
 - All BruceOS packages prefixed `bruce-`
