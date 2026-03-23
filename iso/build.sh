@@ -43,7 +43,13 @@ if [ -x "${PROJECT_DIR}/theme/generate-assets.sh" ]; then
     bash "${PROJECT_DIR}/theme/generate-assets.sh"
 fi
 
-# Pre-download yazi binary (not in any Fedora/COPR repo)
+# Pre-download binaries not in any repo
+if [ ! -f /usr/local/bin/eza ]; then
+    echo "Downloading eza..."
+    curl -sL https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz -C /usr/local/bin/ && \
+        echo "eza downloaded" || echo "WARN: eza download failed"
+fi
+
 if [ ! -f /usr/local/bin/yazi ]; then
     echo "Downloading yazi..."
     curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \

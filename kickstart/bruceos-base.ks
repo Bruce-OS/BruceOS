@@ -47,12 +47,12 @@ repo --name=updates --mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?re
 repo --name=rpmfusion-free --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-43&arch=x86_64
 repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=nonfree-fedora-43&arch=x86_64
 
-# COPR repos (direct baseurl, NOT dnf copr enable)
-repo --name=copr-cachyos --baseurl=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/fedora-43-x86_64/
-repo --name=copr-ghostty --baseurl=https://download.copr.fedorainfracloud.org/results/pgdev/ghostty/fedora-43-x86_64/
-repo --name=copr-starship --baseurl=https://download.copr.fedorainfracloud.org/results/atim/starship/fedora-43-x86_64/
-repo --name=copr-lazygit --baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazygit/fedora-43-x86_64/
-repo --name=copr-zellij --baseurl=https://download.copr.fedorainfracloud.org/results/varlad/zellij/fedora-43-x86_64/
+# COPR repos (direct baseurl, install=0 skips GPG, cost=100 for priority)
+repo --name=copr-cachyos --baseurl=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/fedora-43-x86_64/ --install --cost=100
+repo --name=copr-ghostty --baseurl=https://download.copr.fedorainfracloud.org/results/pgdev/ghostty/fedora-43-x86_64/ --install --cost=100
+repo --name=copr-starship --baseurl=https://download.copr.fedorainfracloud.org/results/atim/starship/fedora-43-x86_64/ --install --cost=100
+repo --name=copr-lazygit --baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazygit/fedora-43-x86_64/ --install --cost=100
+repo --name=copr-zellij --baseurl=https://download.copr.fedorainfracloud.org/results/varlad/zellij/fedora-43-x86_64/ --install --cost=100
 
 #--------------------------------------
 # Packages — everything installed here (anaconda has network)
@@ -75,12 +75,10 @@ gnome-text-editor
 gnome-system-monitor
 -gnome-terminal
 -gnome-console
--ptyxis
 
 # GNOME extensions
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
-gnome-shell-extension-desktop-icons-ng
 
 # VM clipboard support
 spice-vdagent
@@ -100,7 +98,7 @@ cascadia-code-fonts
 # CachyOS BORE kernel (from COPR repo above)
 kernel-cachyos
 
-# Terminal stack — Ghostty + tools
+# Terminal stack — Ghostty + tools (all from Fedora repos or COPR)
 ghostty
 fish
 starship
@@ -108,12 +106,12 @@ atuin
 zellij
 lazygit
 bat
-eza
 fzf
 zoxide
 ripgrep
 btop
 fastfetch
+# eza and yazi: not in any repo, downloaded as binaries in build.sh
 
 # RPM Fusion codecs (from repos above)
 rpmfusion-free-release
@@ -355,6 +353,16 @@ echo "=== Configuring BruceOS GNOME desktop ==="
 
 SYSROOT=/mnt/sysimage
 
+#--- Binary tools (pre-downloaded by build.sh) ---
+if [ -f /usr/local/bin/eza ]; then
+    cp /usr/local/bin/eza "${SYSROOT}/usr/local/bin/eza"
+    chmod +x "${SYSROOT}/usr/local/bin/eza"
+fi
+if [ -f /usr/local/bin/yazi ]; then
+    cp /usr/local/bin/yazi "${SYSROOT}/usr/local/bin/yazi"
+    chmod +x "${SYSROOT}/usr/local/bin/yazi"
+fi
+
 #--- BruceOS wallpaper ---
 if [ -f /build/theme/wallpaper.png ]; then
     mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
@@ -412,14 +420,8 @@ picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
 favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'io.github.ungoogled_software.ungoogled_chromium.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']
 
-[org/gnome/shell/extensions/ding]
-show-trash=true
-show-home=true
-show-volumes=true
-start-corner='top-left'
-icon-size='standard'
 
 [org/gnome/shell/extensions/dash-to-dock]
 dash-max-icon-size=48
