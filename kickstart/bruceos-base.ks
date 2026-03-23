@@ -32,6 +32,11 @@ bootloader --timeout=5 --append="quiet splash"
 rootpw --lock
 
 #--------------------------------------
+# Live user — auto-login to GNOME
+#--------------------------------------
+user --name=liveuser --groups=wheel --password=liveuser --plaintext
+
+#--------------------------------------
 # Repos
 #--------------------------------------
 # Fedora 43 base repos (inherited from install media)
@@ -50,6 +55,7 @@ repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorl
 @hardware-support
 @multimedia
 gnome-shell
+gdm
 gnome-terminal
 gnome-tweaks
 gnome-software
@@ -119,6 +125,30 @@ iwlwifi-*-firmware
 set -euo pipefail
 
 echo "=== BruceOS post-install starting ==="
+
+#--- Set graphical target and auto-login for live session ---
+systemctl set-default graphical.target
+
+# GDM auto-login for live user
+mkdir -p /etc/gdm
+cat > /etc/gdm/custom.conf << 'GDMEOF'
+[daemon]
+AutomaticLoginEnable=True
+AutomaticLogin=liveuser
+WaylandEnable=true
+
+[security]
+
+[xdmcp]
+
+[chooser]
+
+[debug]
+GDMEOF
+
+# Give liveuser passwordless sudo
+echo "liveuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/liveuser
+chmod 440 /etc/sudoers.d/liveuser
 
 #--- CachyOS BORE kernel from COPR ---
 cat > /etc/yum.repos.d/cachyos-kernel.repo << 'REPOEOF'
