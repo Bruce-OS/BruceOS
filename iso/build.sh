@@ -25,15 +25,17 @@ echo "Kickstart: ${KS_FILE}"
 echo "Output:    ${OUTPUT_DIR}"
 echo ""
 
-# Install build dependencies
-# anaconda is required for --no-virt mode
-# grub2/shim packages are needed in the build root for lorax ISO assembly
-# librsvg2-tools + ImageMagick for theme asset generation
-dnf install -y lorax livecd-tools anaconda \
-    grub2-efi-x64 grub2-efi-x64-modules grub2-efi-x64-cdboot \
-    grub2-pc grub2-pc-modules \
-    shim-x64 syslinux syslinux-nonlinux xorriso \
-    librsvg2-tools ImageMagick
+# Install build dependencies (skipped if already present, e.g. in bruceos-builder container)
+if ! command -v livemedia-creator &>/dev/null; then
+    echo "Installing build dependencies..."
+    dnf install -y lorax livecd-tools anaconda \
+        grub2-efi-x64 grub2-efi-x64-modules grub2-efi-x64-cdboot \
+        grub2-pc grub2-pc-modules \
+        shim-x64 syslinux syslinux-nonlinux xorriso \
+        librsvg2-tools ImageMagick
+else
+    echo "Build dependencies already installed, skipping."
+fi
 
 # Generate theme assets (wallpaper, branding logos, Plymouth PNGs)
 if [ -x "${PROJECT_DIR}/theme/generate-assets.sh" ]; then

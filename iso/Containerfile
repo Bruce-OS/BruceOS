@@ -1,14 +1,23 @@
-# BruceOS ISO Build Container
-# Usage: podman build -t bruceos-builder -f iso/Containerfile .
-#        podman run --rm --privileged -v $(pwd):/build bruceos-builder
+# BruceOS ISO Build Container (pre-cached)
+# Build once:  sudo podman build -t bruceos-builder -f iso/Containerfile .
+# Then builds: sudo podman run --rm --privileged --pid=host \
+#                --security-opt label=disable -v /dev:/dev \
+#                -v $(pwd):/build --tmpfs /var/tmp:size=20G \
+#                -v bruceos-dnf-cache:/var/cache/libdnf5 \
+#                bruceos-builder
 
 FROM fedora:43
 
+# Pre-install ALL build dependencies (saves 2-3 min per build)
 RUN dnf install -y \
     lorax \
     livecd-tools \
     anaconda \
-    git \
+    grub2-efi-x64 grub2-efi-x64-modules grub2-efi-x64-cdboot \
+    grub2-pc grub2-pc-modules \
+    shim-x64 syslinux syslinux-nonlinux xorriso \
+    librsvg2-tools ImageMagick \
+    git unzip curl \
     && dnf clean all
 
 WORKDIR /build
