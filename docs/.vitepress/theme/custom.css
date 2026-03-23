@@ -139,8 +139,12 @@
 
 /* ----- Feature cards ----- */
 .dark .VPFeature {
-  background-color: transparent;
-  border-color: transparent;
+  background-color: #111111;
+  border-color: #2a2a2a;
+}
+
+.dark .VPFeature:hover {
+  border-color: #10b981;
 }
 
 /* ----- Feature icons: no background, bigger, thinner stroke ----- */
@@ -156,7 +160,7 @@
 .VPFeatures .icon svg {
   width: 40px !important;
   height: 40px !important;
-  stroke-width: 1.25 !important;
+  stroke-width: 1 !important;
   color: #10b981;
 }
 
