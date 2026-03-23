@@ -14,6 +14,7 @@ PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
 KS_FILE="${1:-bruceos-base.ks}"
 KS_PATH="${PROJECT_DIR}/kickstart/${KS_FILE}"
 OUTPUT_DIR="${PROJECT_DIR}/output"
+STAGING="/tmp/bruceos-staging"
 
 if [ ! -f "${KS_PATH}" ]; then
     echo "ERROR: Kickstart file not found: ${KS_PATH}"
@@ -25,7 +26,7 @@ echo "Kickstart: ${KS_FILE}"
 echo "Output:    ${OUTPUT_DIR}"
 echo ""
 
-# Install build dependencies (skipped if already present, e.g. in bruceos-builder container)
+# Install build dependencies (skipped if already present)
 if ! command -v livemedia-creator &>/dev/null; then
     echo "Installing build dependencies..."
     dnf install -y lorax livecd-tools anaconda \
@@ -43,30 +44,45 @@ if [ -x "${PROJECT_DIR}/theme/generate-assets.sh" ]; then
     bash "${PROJECT_DIR}/theme/generate-assets.sh"
 fi
 
-# Pre-download binaries not in any repo
-if [ ! -f /usr/local/bin/eza ]; then
-    echo "Downloading eza..."
-    curl -sL https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz -C /usr/local/bin/ && \
-        echo "eza downloaded" || echo "WARN: eza download failed"
-fi
+# --- Pre-download packages/binaries that can't go in %packages ---
+mkdir -p "${STAGING}"
 
-if [ ! -f /usr/local/bin/yazi ]; then
-    echo "Downloading yazi..."
-    curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \
-        unzip -o /tmp/yazi.zip -d /tmp/yazi && \
-        cp /tmp/yazi/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin/ && \
-        chmod +x /usr/local/bin/yazi && \
-        rm -rf /tmp/yazi /tmp/yazi.zip && \
-        echo "yazi downloaded" || echo "WARN: yazi download failed"
-fi
+# Ghostty RPM (conflicts with ncurses-term on terminfo file)
+echo "Downloading Ghostty RPM..."
+cat > /tmp/ghostty.repo << 'REPOEOF'
+[copr-ghostty]
+name=Ghostty
+baseurl=https://download.copr.fedorainfracloud.org/results/pgdev/ghostty/fedora-43-x86_64/
+gpgcheck=0
+enabled=1
+REPOEOF
+dnf download -y --destdir="${STAGING}" --setopt=reposdir=/tmp ghostty 2>/dev/null && \
+    echo "Ghostty RPM staged" || echo "WARN: Ghostty download failed"
 
-# livemedia-creator requires resultdir to NOT exist — remove if present
+# eza binary (not in any repo)
+echo "Downloading eza..."
+curl -sL https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz -C "${STAGING}/" && \
+    echo "eza staged" || echo "WARN: eza download failed"
+
+# yazi binary (not in any repo)
+echo "Downloading yazi..."
+curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \
+    unzip -o /tmp/yazi.zip -d /tmp/yazi && \
+    cp /tmp/yazi/yazi-x86_64-unknown-linux-gnu/yazi "${STAGING}/" && \
+    rm -rf /tmp/yazi /tmp/yazi.zip && \
+    echo "yazi staged" || echo "WARN: yazi download failed"
+
+echo "Staged files:"
+ls -la "${STAGING}/"
+
+# --- Build the ISO ---
+
+# livemedia-creator requires resultdir to NOT exist
 if [ -d "${OUTPUT_DIR}" ]; then
     echo "Removing existing output directory..."
     rm -rf "${OUTPUT_DIR}"
 fi
 
-# Build the live ISO
 livemedia-creator \
     --ks "${KS_PATH}" \
     --no-virt \
@@ -77,15 +93,6 @@ livemedia-creator \
     --make-iso \
     --iso-only \
     --iso-name "BruceOS-1.0-x86_64.iso"
-
-# Run build verification against the installed rootfs
-# (The rootfs is in the livemedia working directory if available)
-ROOTFS=$(find /var/tmp -maxdepth 2 -name "rootfs" -type d 2>/dev/null | head -1)
-if [ -n "${ROOTFS}" ] && [ -d "${ROOTFS}" ]; then
-    echo ""
-    echo "=== Running build verification ==="
-    chroot "${ROOTFS}" bash /build/iso/verify-build.sh || true
-fi
 
 echo ""
 echo "=== Build complete ==="

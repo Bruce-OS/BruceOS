@@ -49,7 +49,6 @@ repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorl
 
 # COPR repos (direct baseurl, install=0 skips GPG, cost=100 for priority)
 repo --name=copr-cachyos --baseurl=https://download.copr.fedorainfracloud.org/results/bieszczaders/kernel-cachyos/fedora-43-x86_64/ --install --cost=100
-repo --name=copr-ghostty --baseurl=https://download.copr.fedorainfracloud.org/results/pgdev/ghostty/fedora-43-x86_64/ --install --cost=100
 repo --name=copr-starship --baseurl=https://download.copr.fedorainfracloud.org/results/atim/starship/fedora-43-x86_64/ --install --cost=100
 repo --name=copr-lazygit --baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazygit/fedora-43-x86_64/ --install --cost=100
 repo --name=copr-zellij --baseurl=https://download.copr.fedorainfracloud.org/results/varlad/zellij/fedora-43-x86_64/ --install --cost=100
@@ -98,8 +97,7 @@ cascadia-code-fonts
 # CachyOS BORE kernel (from COPR repo above)
 kernel-cachyos
 
-# Terminal stack — Ghostty + tools (all from Fedora repos or COPR)
-ghostty
+# Terminal stack (ghostty installed in %post --nochroot due to ncurses-term conflict)
 fish
 starship
 atuin
@@ -353,15 +351,24 @@ echo "=== Configuring BruceOS GNOME desktop ==="
 
 SYSROOT=/mnt/sysimage
 
-#--- Binary tools (pre-downloaded by build.sh) ---
-if [ -f /usr/local/bin/eza ]; then
-    cp /usr/local/bin/eza "${SYSROOT}/usr/local/bin/eza"
-    chmod +x "${SYSROOT}/usr/local/bin/eza"
+#--- Staged packages from build.sh (in /tmp/bruceos-staging/) ---
+STAGING=/tmp/bruceos-staging
+
+# Ghostty (conflicts with ncurses-term, must use --replacefiles)
+if ls ${STAGING}/ghostty-*.rpm 1>/dev/null 2>&1; then
+    rpm --root="${SYSROOT}" -i --replacefiles ${STAGING}/ghostty-*.rpm && \
+        echo "Ghostty installed" || echo "WARN: Ghostty rpm install failed"
 fi
-if [ -f /usr/local/bin/yazi ]; then
-    cp /usr/local/bin/yazi "${SYSROOT}/usr/local/bin/yazi"
-    chmod +x "${SYSROOT}/usr/local/bin/yazi"
-fi
+
+# eza + yazi binaries
+mkdir -p "${SYSROOT}/usr/local/bin"
+for bin in eza yazi; do
+    if [ -f "${STAGING}/${bin}" ]; then
+        cp "${STAGING}/${bin}" "${SYSROOT}/usr/local/bin/${bin}"
+        chmod +x "${SYSROOT}/usr/local/bin/${bin}"
+        echo "${bin} installed"
+    fi
+done
 
 #--- BruceOS wallpaper ---
 if [ -f /build/theme/wallpaper.png ]; then
