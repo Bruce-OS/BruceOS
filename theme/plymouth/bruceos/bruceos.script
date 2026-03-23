@@ -2,8 +2,8 @@
 // Minimal spinner with BruceOS logo on dark background
 
 // Background
-Window.SetBackgroundTopColor(0.05, 0.07, 0.09);     // #0d1117
-Window.SetBackgroundBottomColor(0.05, 0.07, 0.09);
+Window.SetBackgroundTopColor(0.04, 0.04, 0.04);     // #0a0a0a
+Window.SetBackgroundBottomColor(0.04, 0.04, 0.04);
 
 // Logo
 logo.image = Image("logo.png");

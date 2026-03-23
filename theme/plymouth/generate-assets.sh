@@ -25,8 +25,8 @@ if command -v convert &> /dev/null; then
     for i in $(seq 0 35); do
         angle=$((i * 10))
         convert -size 48x48 xc:none \
-            -fill 'rgba(53,132,228,0.15)' -draw "circle 24,24 24,4" \
-            -fill '#3584e4' -draw "translate 24,24 rotate ${angle} circle 0,-20 3,-20" \
+            -fill 'rgba(16,185,129,0.15)' -draw "circle 24,24 24,4" \
+            -fill '#10b981' -draw "translate 24,24 rotate ${angle} circle 0,-20 3,-20" \
             "${THEME_DIR}/spinner-${i}.png"
     done
     echo "Generated 36 spinner frames"
