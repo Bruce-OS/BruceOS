@@ -1,8 +1,13 @@
 {
   "logo": {
-    "source": "/etc/fastfetch/logo.txt",
-    "type": "raw",
-    "color": { "1": "green" }
+    "source": "         ██████████\n        ████████████\n       ██████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n       █████  ██████\n       █████    █████\n       █████  ██████\n       ██████████████\n        ████████████\n         ██████████",
+    "type": "data",
+    "color": {
+      "1": "green"
+    },
+    "padding": {
+      "top": 1
+    }
   },
   "modules": [
     "title", "separator",
