@@ -1,0 +1,174 @@
+/* BruceOS Calamares Stylesheet */
+/* "They call me Bruce." */
+
+/* Main window background */
+#mainApp {
+    background-color: #0a0a0a;
+    color: #e5e5e5;
+}
+
+/* Sidebar */
+#sidebarApp {
+    background-color: #0a0a0a;
+    font-family: "Red Hat Display", "Noto Sans", sans-serif;
+}
+
+#logoApp {
+    margin: 12px;
+}
+
+/* Navigation buttons */
+QPushButton {
+    background-color: #10b981;
+    color: #0a0a0a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-family: "Red Hat Text", "Noto Sans", sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #34d399;
+}
+
+QPushButton:pressed {
+    background-color: #059669;
+}
+
+QPushButton:disabled {
+    background-color: #374151;
+    color: #6b7280;
+}
+
+/* Cancel button — less prominent */
+#cancelButton {
+    background-color: transparent;
+    color: #9ca3af;
+    border: 1px solid #374151;
+}
+
+#cancelButton:hover {
+    background-color: #1f2937;
+    color: #e5e5e5;
+}
+
+/* Labels and text */
+QLabel {
+    color: #e5e5e5;
+    font-family: "Red Hat Text", "Noto Sans", sans-serif;
+}
+
+QLabel#heading {
+    font-family: "Red Hat Display", "Noto Sans", sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Input fields */
+QLineEdit, QComboBox, QSpinBox {
+    background-color: #1f2937;
+    color: #e5e5e5;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: "Red Hat Text", "Noto Sans", sans-serif;
+}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border-color: #10b981;
+}
+
+/* Combo box dropdown */
+QComboBox QAbstractItemView {
+    background-color: #1f2937;
+    color: #e5e5e5;
+    selection-background-color: #10b981;
+    selection-color: #0a0a0a;
+}
+
+/* Checkbox and radio */
+QCheckBox, QRadioButton {
+    color: #e5e5e5;
+    font-family: "Red Hat Text", "Noto Sans", sans-serif;
+}
+
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    background-color: #10b981;
+    border: 2px solid #10b981;
+}
+
+/* Progress bar */
+QProgressBar {
+    background-color: #1f2937;
+    border: none;
+    border-radius: 4px;
+    text-align: center;
+    color: #e5e5e5;
+    height: 8px;
+}
+
+QProgressBar::chunk {
+    background-color: #10b981;
+    border-radius: 4px;
+}
+
+/* List views */
+QListView, QTreeView, QTableView {
+    background-color: #111827;
+    color: #e5e5e5;
+    border: 1px solid #374151;
+    alternate-background-color: #1f2937;
+}
+
+QListView::item:selected, QTreeView::item:selected, QTableView::item:selected {
+    background-color: #10b981;
+    color: #0a0a0a;
+}
+
+/* Group boxes */
+QGroupBox {
+    border: 1px solid #374151;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding-top: 16px;
+    color: #e5e5e5;
+    font-family: "Red Hat Display", "Noto Sans", sans-serif;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+}
+
+/* Scroll bars */
+QScrollBar:vertical {
+    background-color: #0a0a0a;
+    width: 8px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #374151;
+    border-radius: 4px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #10b981;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* Tooltip */
+QToolTip {
+    background-color: #1f2937;
+    color: #e5e5e5;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 4px 8px;
+}

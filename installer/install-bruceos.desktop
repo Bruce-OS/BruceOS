@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Install BruceOS
+GenericName=System Installer
+Comment=Install BruceOS to your hard drive
+Exec=pkexec calamares
+Icon=bruceos-logo
+Terminal=false
+Categories=System;
+Keywords=install;calamares;system;
+StartupNotify=true
+X-GNOME-Autostart-enabled=false

@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: no
+# SPDX-License-Identifier: CC0-1.0
+#
+# BruceOS Calamares Branding
+# "They call me Bruce."
+
+componentName: bruceos
+
+### WELCOME / OVERALL WORDING
+
+# Use distro-styled welcome (not Calamares default)
+welcomeStyleCalamares: false
+
+# Expand the logo on the welcome page
+welcomeExpandingLogo: true
+
+### WINDOW CONFIGURATION
+
+windowExpanding:    normal
+windowSize:         800px,520px
+windowPlacement:    center
+
+### PANELS CONFIGURATION
+
+sidebar:     widget
+navigation:  widget
+
+### STRINGS, IMAGES AND COLORS
+
+strings:
+    productName:         BruceOS
+    shortProductName:    BruceOS
+    version:             1.0
+    shortVersion:        1.0
+    versionedName:       BruceOS 1.0
+    shortVersionedName:  BruceOS 1.0
+    bootloaderEntryName: BruceOS
+    productUrl:          https://bruceos.com
+    supportUrl:          https://github.com/Bruce-OS/BruceOS/issues
+    knownIssuesUrl:      https://github.com/Bruce-OS/BruceOS/issues
+    releaseNotesUrl:     https://bruceos.com/changelog
+    donateUrl:           https://bruceos.com/donate
+
+images:
+    productIcon:         "bruceos-logo.svg"
+    productLogo:         "bruceos-logo.svg"
+    productWelcome:      "bruceos-welcome.png"
+
+style:
+    SidebarBackground:          "#0a0a0a"
+    SidebarText:                "#FFFFFF"
+    SidebarTextCurrent:         "#0a0a0a"
+    SidebarBackgroundCurrent:   "#10b981"
+
+### SLIDESHOW
+
+slideshow:    "show.qml"
+slideshowAPI: 2
+
+### UPLOAD SERVER (for crash logs)
+
+uploadServer:
+    type:      "none"

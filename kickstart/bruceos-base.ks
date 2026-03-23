@@ -139,6 +139,14 @@ distrobox
 firewalld
 NetworkManager
 
+# Node.js (needed for pi coding agent, installed at first boot)
+nodejs
+npm
+
+# Calamares installer (replaces Anaconda for installed system setup)
+calamares
+calamares-libs
+
 # Live ISO / bootloader support
 dracut-live
 grub2-pc
@@ -218,6 +226,13 @@ alias ls="eza --icons"
 alias ll="eza -la --icons"
 alias cat="bat --paging=never"
 alias tree="eza --tree --icons"
+
+# Pi coding agent (npm global binary)
+if command -q pi
+    function pi --wraps='pi' --description 'Pi AI coding agent'
+        command pi $argv
+    end
+end
 
 # Show BruceOS info on first shell in terminal
 if status is-interactive; and not set -q BRUCE_GREETED
@@ -314,9 +329,61 @@ UNITEOF
 
 cat > /usr/libexec/bruceos-first-boot.sh << 'SCRIPTEOF'
 #!/bin/bash
-# BruceOS first-boot: add Flathub and install default Flatpak apps
+# BruceOS first-boot setup — runs once after first boot with network
+LOG=/var/log/bruceos-first-boot.log
+exec &> >(tee -a "$LOG")
+echo "=== BruceOS first-boot starting at $(date) ==="
+
+# Wait for network to actually be up
+for i in $(seq 1 30); do
+    if curl -sf --connect-timeout 3 https://dl.flathub.org > /dev/null 2>&1; then
+        echo "Network ready"
+        break
+    fi
+    echo "Waiting for network... ($i/30)"
+    sleep 2
+done
+
+# --- Flathub + Ungoogled Chromium (default browser, called "Chrome") ---
+echo "Adding Flathub..."
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+echo "Installing Ungoogled Chromium..."
 flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || true
+
+# Create a friendly "Chrome" desktop entry pointing to Ungoogled Chromium
+if flatpak info io.github.ungoogled_software.ungoogled_chromium &>/dev/null; then
+    cat > /usr/share/applications/chrome.desktop << 'CHROMEEOF'
+[Desktop Entry]
+Name=Chrome
+Comment=Browse the web (Ungoogled Chromium)
+Exec=flatpak run io.github.ungoogled_software.ungoogled_chromium %U
+Icon=io.github.ungoogled_software.ungoogled_chromium
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+CHROMEEOF
+    echo "Chrome desktop entry created"
+fi
+
+# --- DING (Desktop Icons NG) ---
+echo "Installing DING extension..."
+DING_UUID="ding@rastersoft.com"
+DING_DEST="/usr/share/gnome-shell/extensions/${DING_UUID}"
+curl -sfL "https://extensions.gnome.org/download-extension/${DING_UUID}.shell-extension.zip?shell_version=49" -o /tmp/ding.zip && \
+    mkdir -p "${DING_DEST}" && \
+    unzip -qo /tmp/ding.zip -d "${DING_DEST}" && \
+    rm -f /tmp/ding.zip && \
+    echo "DING installed" || echo "WARN: DING install failed"
+
+# --- Pi coding agent ---
+echo "Installing Pi coding agent..."
+npm install -g @mariozechner/pi-coding-agent || echo "WARN: pi install failed"
+npm install -g pi-zellij || echo "WARN: pi-zellij install failed"
+npm install -g @codexstar/pi-listen || echo "WARN: pi-listen install failed"
+
+echo "=== BruceOS first-boot complete at $(date) ==="
 SCRIPTEOF
 chmod +x /usr/libexec/bruceos-first-boot.sh
 systemctl enable bruceos-first-boot.service
@@ -383,36 +450,8 @@ for bin in eza yazi; do
     fi
 done
 
-#--- GNOME Desktop Icons NG (DING) extension ---
-# Not available as RPM in Fedora 43; download from extensions.gnome.org
-# GNOME 49 does NOT include desktop icons natively — an extension is required
-DING_UUID="ding@rastersoft.com"
-DING_EXT_ID=2087
-DING_DEST="${SYSROOT}/usr/share/gnome-shell/extensions/${DING_UUID}"
-DING_ZIP="/tmp/ding-extension.zip"
-
-# Query the extensions.gnome.org API for the correct version tag
-DING_INFO=$(curl -sf "https://extensions.gnome.org/extension-info/?pk=${DING_EXT_ID}&shell_version=49" 2>/dev/null) || true
-if [ -n "${DING_INFO}" ]; then
-    # Extract the download URL from the JSON response
-    DING_URL=$(echo "${DING_INFO}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('download_url',''))" 2>/dev/null) || true
-fi
-
-# Fallback: use the direct download endpoint if API query failed
-if [ -z "${DING_URL:-}" ]; then
-    DING_URL="/download-extension/${DING_UUID}.shell-extension.zip?shell_version=49"
-fi
-
-echo "Downloading DING extension from https://extensions.gnome.org${DING_URL} ..."
-if curl -sfL "https://extensions.gnome.org${DING_URL}" -o "${DING_ZIP}"; then
-    mkdir -p "${DING_DEST}"
-    unzip -qo "${DING_ZIP}" -d "${DING_DEST}" && \
-        echo "DING extension installed to ${DING_DEST}" || \
-        echo "WARN: Failed to extract DING extension"
-    rm -f "${DING_ZIP}"
-else
-    echo "WARN: Failed to download DING extension — desktop icons will not be available"
-fi
+# DING extension is installed at first boot (needs network)
+# See bruceos-first-boot.sh
 
 #--- BruceOS wallpaper ---
 if [ -f /build/theme/wallpaper.png ]; then
@@ -470,7 +509,7 @@ picture-options='zoom'
 picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
-favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'io.github.ungoogled_software.ungoogled_chromium.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'chrome.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
 enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
 
 
