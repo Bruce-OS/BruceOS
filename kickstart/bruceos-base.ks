@@ -99,6 +99,9 @@ distrobox
 firewalld
 NetworkManager
 
+# Live ISO support
+dracut-live
+
 # Firmware
 linux-firmware
 iwlwifi-*-firmware
