@@ -24,7 +24,7 @@ part / --fstype=ext4 --size=20480 --label=BruceOS
 #--------------------------------------
 # Bootloader
 #--------------------------------------
-bootloader --timeout=0 --append="quiet splash"
+bootloader --timeout=0 --append="quiet splash rd.live.overlay.size=8192"
 
 #--------------------------------------
 # Root password (disabled for live image)

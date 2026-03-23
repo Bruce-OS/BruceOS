@@ -93,7 +93,8 @@ livemedia-creator \
     --make-iso \
     --iso-only \
     --iso-name "BruceOS-1.0-x86_64.iso" \
-    --live-rootfs-keep-size
+    --live-rootfs-keep-size \
+    --extra-boot-args "rd.live.overlay.size=8192"
 
 echo ""
 echo "=== Build complete ==="
