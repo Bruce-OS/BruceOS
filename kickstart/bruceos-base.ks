@@ -70,6 +70,7 @@ gnome-system-monitor
 # GNOME extensions (approved list — see RULES.md)
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
+gnome-shell-extension-desktop-icons-ng
 
 # VM clipboard support
 spice-vdagent
@@ -439,7 +440,14 @@ picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
 favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'io.github.ungoogled_software.ungoogled_chromium.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
+
+[org/gnome/shell/extensions/ding]
+show-trash=true
+show-home=true
+show-volumes=true
+start-corner='top-left'
+icon-size='standard'
 
 [org/gnome/shell/extensions/dash-to-dock]
 dash-max-icon-size=48
