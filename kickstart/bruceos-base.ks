@@ -12,7 +12,7 @@ keyboard us
 timezone UTC --utc
 selinux --enforcing
 firewall --enabled --service=ssh
-network --bootproto=dhcp --activate
+network --bootproto=dhcp --activate --hostname=bruceos
 
 #--------------------------------------
 # Disk layout
@@ -178,16 +178,31 @@ dnf install -y kernel-cachyos kernel-cachyos-devel-matched || {
     dnf install -y kernel kernel-core kernel-modules
 }
 
-#--- Terminal tools from COPR (not in base Fedora repos) ---
+#--- Terminal tools from COPR ---
 # Use explicit fedora-43-x86_64 chroot because os-release says "bruceos"
+dnf copr enable -y pgdev/ghostty fedora-43-x86_64
 dnf copr enable -y atim/starship fedora-43-x86_64
 dnf copr enable -y atim/lazygit fedora-43-x86_64
-dnf copr enable -y pgdev/ghostty fedora-43-x86_64
-# Ghostty conflicts with ncurses-term on terminfo file — force replace
-for pkg in starship eza lazygit yazi zellij; do
+dnf copr enable -y varlad/zellij fedora-43-x86_64
+
+# Install COPR packages individually (one failure shouldn't block others)
+for pkg in starship lazygit zellij; do
     dnf install -y "$pkg" || echo "WARN: $pkg not available"
 done
+
+# Ghostty conflicts with ncurses-term on terminfo — force replace
 dnf download -y ghostty && rpm -i --replacefiles ghostty-*.rpm && rm -f ghostty-*.rpm || echo "WARN: ghostty not available"
+
+#--- Binary installs (not in Fedora or COPR) ---
+# eza — prebuilt binary from GitHub
+curl -sL https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz -C /usr/local/bin/ || echo "WARN: eza download failed"
+
+# yazi — prebuilt binary from GitHub
+curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip -o /tmp/yazi.zip && \
+    unzip -o /tmp/yazi.zip -d /tmp/yazi && \
+    cp /tmp/yazi/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin/ && \
+    chmod +x /usr/local/bin/yazi && \
+    rm -rf /tmp/yazi /tmp/yazi.zip || echo "WARN: yazi download failed"
 
 #--- RPM Fusion repos (for multimedia codecs, NVIDIA drivers) ---
 dnf install -y \
