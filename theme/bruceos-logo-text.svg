@@ -10,6 +10,6 @@
   <text x="88" y="148" font-family="'Red Hat Display', 'Segoe UI', sans-serif" font-weight="900" font-size="140" fill="white" text-anchor="middle">B</text>
   <!-- Text -->
   <text x="210" y="138" font-family="'Red Hat Display', 'Segoe UI', sans-serif" font-weight="700" font-size="120" letter-spacing="-3">
-    <tspan fill="#e6edf3">Bruce</tspan><tspan fill="#10b981">OS</tspan>
+    <tspan fill="#e6edf3">BruceOS</tspan>
   </text>
 </svg>
