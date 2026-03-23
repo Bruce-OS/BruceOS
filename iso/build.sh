@@ -92,7 +92,8 @@ livemedia-creator \
     --volid "BruceOS-1-0" \
     --make-iso \
     --iso-only \
-    --iso-name "BruceOS-1.0-x86_64.iso"
+    --iso-name "BruceOS-1.0-x86_64.iso" \
+    --live-rootfs-keep-size
 
 echo ""
 echo "=== Build complete ==="
