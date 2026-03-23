@@ -19,7 +19,7 @@ network --bootproto=dhcp --activate
 #--------------------------------------
 zerombr
 clearpart --all --initlabel
-part / --fstype=ext4 --size=8192
+part / --fstype=ext4 --size=12288
 
 #--------------------------------------
 # Bootloader
