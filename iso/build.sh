@@ -77,6 +77,16 @@ ls -la "${STAGING}/"
 
 # --- Build the ISO ---
 
+# Override GRUB configs to hide menu (timeout=0)
+echo "Patching GRUB timeout..."
+for cfg in /usr/share/lorax/templates.d/99-generic/live/config_files/x86/grub2-efi.cfg \
+           /usr/share/lorax/templates.d/99-generic/live/config_files/x86/grub2-bios.cfg; do
+    if [ -f "$cfg" ]; then
+        sed -i 's/set timeout=60/set timeout=0\nset timeout_style=hidden/' "$cfg"
+        sed -i 's/set default="1"/set default="0"/' "$cfg"
+    fi
+done
+
 # livemedia-creator requires resultdir to NOT exist
 if [ -d "${OUTPUT_DIR}" ]; then
     echo "Removing existing output directory..."
