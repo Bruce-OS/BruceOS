@@ -279,10 +279,17 @@ ZRAMEOF
 #--- Plymouth ---
 plymouth-set-default-theme spinner || true
 
-#--- Flathub remote (local config, no download) ---
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+#--- Set CachyOS as default boot kernel ---
+if rpm -q kernel-cachyos &>/dev/null; then
+    CACHYOS_VER=$(rpm -q --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' kernel-cachyos | head -1)
+    grubby --set-default="/boot/vmlinuz-${CACHYOS_VER}" 2>/dev/null || true
+    echo "Default kernel set to CachyOS ${CACHYOS_VER}"
+fi
 
-#--- First-boot service for Flatpak apps ---
+#--- Hostname ---
+hostnamectl set-hostname bruceos 2>/dev/null || echo "bruceos" > /etc/hostname
+
+#--- First-boot service for Flatpak + Flathub ---
 cat > /etc/systemd/system/bruceos-first-boot.service << 'UNITEOF'
 [Unit]
 Description=BruceOS First Boot Setup
@@ -302,7 +309,8 @@ UNITEOF
 
 cat > /usr/libexec/bruceos-first-boot.sh << 'SCRIPTEOF'
 #!/bin/bash
-# BruceOS first-boot: install Flatpak apps
+# BruceOS first-boot: add Flathub and install default Flatpak apps
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || true
 SCRIPTEOF
 chmod +x /usr/libexec/bruceos-first-boot.sh
