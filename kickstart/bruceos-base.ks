@@ -173,10 +173,15 @@ enabled=1
 enabled_metadata=1
 REPOEOF
 
-dnf install -y kernel-cachyos kernel-cachyos-devel-matched || {
-    echo "WARN: CachyOS kernel install failed, falling back to default kernel"
-    dnf install -y kernel kernel-core kernel-modules
+# Install CachyOS kernel — try each package individually
+dnf install -y kernel-cachyos || {
+    echo "WARN: CachyOS kernel-cachyos failed, trying with explicit repo"
+    dnf install -y --repo=copr:copr.fedorainfracloud.org:bieszczaders:kernel-cachyos kernel-cachyos || {
+        echo "WARN: CachyOS kernel not available, falling back to stock Fedora kernel"
+        dnf install -y kernel kernel-core kernel-modules
+    }
 }
+dnf install -y kernel-cachyos-devel-matched || echo "WARN: kernel-cachyos-devel-matched not available"
 
 #--- Terminal tools from COPR ---
 # Use explicit fedora-43-x86_64 chroot because os-release says "bruceos"
