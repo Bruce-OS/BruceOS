@@ -94,8 +94,12 @@ distrobox
 firewalld
 NetworkManager
 
-# Live ISO support
+# Live ISO / bootloader support
 dracut-live
+grub2-pc
+grub2-efi-x64
+shim-x64
+syslinux
 
 # Firmware
 linux-firmware
