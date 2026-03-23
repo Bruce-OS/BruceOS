@@ -71,21 +71,16 @@ google-noto-sans-mono-fonts
 jetbrains-mono-fonts-all
 cascadia-code-fonts
 
-# Terminal stack
-ghostty
+# Terminal stack (packages in Fedora repos)
 fish
-starship
 atuin
-zellij
 bat
-eza
 fzf
 zoxide
 ripgrep
-yazi
-lazygit
 btop
 fastfetch
+# ghostty, starship, eza, yazi, zellij, lazygit installed via COPR in %post
 
 # Core system tools
 git
@@ -134,6 +129,18 @@ REPOEOF
 dnf install -y kernel-cachyos kernel-cachyos-devel-matched || {
     echo "WARN: CachyOS kernel install failed, falling back to default kernel"
     dnf install -y kernel kernel-core kernel-modules
+}
+
+#--- Terminal tools from COPR (not in base Fedora repos) ---
+dnf copr enable -y atim/starship
+dnf copr enable -y atim/lazygit
+dnf copr enable -y pgdev/ghostty
+dnf install -y ghostty starship eza lazygit yazi zellij || {
+    echo "WARN: Some terminal tools failed to install from COPR"
+    # Install what we can individually
+    for pkg in ghostty starship eza lazygit yazi zellij; do
+        dnf install -y "$pkg" || echo "WARN: $pkg not available"
+    done
 }
 
 #--- RPM Fusion repos (for multimedia codecs, NVIDIA drivers) ---
