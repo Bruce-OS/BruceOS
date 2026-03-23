@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: BruceOS
+  name: <span style="color:#10b981">Bruce</span>OS
   text: They call me Bruce.
   tagline: An operating system for you. All your favourite apps, gaming that works, built-in agents, and a terminal for nerds.
   image:
