@@ -149,6 +149,9 @@ npm
 # Calamares installer (replaces Anaconda for installed system setup)
 calamares
 calamares-libs
+polkit-gnome
+-os-prober
+-grub2-tools-efi
 
 # Live ISO / bootloader support
 dracut-live
@@ -211,6 +214,31 @@ polkit.addRule(function(action, subject) {
     }
 });
 POLKITEOF
+
+#--- Polkit GNOME auth agent autostart (needed for Calamares on Wayland) ---
+mkdir -p /etc/xdg/autostart
+cp /usr/share/applications/polkit-gnome-authentication-agent-1.desktop /etc/xdg/autostart/ 2>/dev/null || \
+cat > /etc/xdg/autostart/polkit-gnome-authentication-agent-1.desktop << 'POLKITDESKTOP'
+[Desktop Entry]
+Name=PolicyKit Authentication Agent
+Comment=PolicyKit Authentication Agent
+Exec=/usr/libexec/polkit-gnome-authentication-agent-1
+Terminal=false
+Type=Application
+Categories=
+NoDisplay=true
+OnlyShowIn=GNOME;Unity;
+AutostartCondition=GNOME3 if-session gnome
+POLKITDESKTOP
+
+#--- Calamares launcher wrapper (runs as root with Wayland display access) ---
+cat > /usr/local/bin/bruceos-install << 'INSTALLEOF'
+#!/bin/bash
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+sudo -E /usr/bin/calamares "$@"
+INSTALLEOF
+chmod +x /usr/local/bin/bruceos-install
 
 #--- Set Fish as default shell ---
 chsh -s /usr/bin/fish root || echo "WARN: chsh root failed"
