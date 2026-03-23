@@ -51,11 +51,11 @@ Built by [Danger Studio](https://danger.studio) in Wellington, NZ. Documentation
 
 ## Download
 
-> **Status:** Pre-release. ISO builds are functional but not yet recommended for daily use.
+> **Status:** Pre-release. Functional but not yet recommended for daily use.
 
-**[Download latest ISO from GitHub Actions](https://github.com/Bruce-OS/BruceOS/actions)**
+**[Download BruceOS-1.0-x86_64.iso](https://github.com/Bruce-OS/BruceOS/releases/latest/download/BruceOS-1.0-x86_64.iso)** (~2 GB)
 
-Click the latest successful **BruceOS Build** run → **Artifacts** → **BruceOS-ISO**.
+Boot from USB or test in a VM (UEFI, 4 GB+ RAM). See [all releases](https://github.com/Bruce-OS/BruceOS/releases).
 
 ## Building from Source
 

@@ -4,11 +4,11 @@ BruceOS installs from a live USB. You download the ISO, write it to a USB drive,
 
 ## Download the ISO
 
-ISO downloads are coming soon. BruceOS is in active development and not yet ready for daily use.
+**[Download BruceOS-1.0-x86_64.iso](https://github.com/Bruce-OS/BruceOS/releases/latest/download/BruceOS-1.0-x86_64.iso)** (~2 GB)
 
-When available, ISOs will be published at [bruceos.com](https://bruceos.com) with SHA256 checksums for verification.
+This is a pre-release build. Functional but not yet recommended for daily use.
 
-If you want to test now, you can [build the ISO from source](/guide/building).
+You can also [build the ISO from source](/guide/building) or browse [all releases](https://github.com/Bruce-OS/BruceOS/releases).
 
 ## Write to USB
 

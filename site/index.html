@@ -230,6 +230,24 @@
       margin-bottom: 2rem;
     }
 
+    .download-btn {
+      display: inline-block;
+      padding: 0.85rem 2.5rem;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .download-btn:hover {
+      background: var(--accent-dim);
+      color: white;
+    }
+
     .signup-form {
       display: flex;
       gap: 0.5rem;
@@ -417,12 +435,9 @@
     <section id="download" class="download-section">
       <div class="container">
         <h2 class="section-title">Download</h2>
-        <p class="coming-soon">Coming soon. Bruce is still getting dressed.</p>
-        <form class="signup-form" action="#" method="post">
-          <label for="email" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Email address</label>
-          <input type="email" id="email" name="email" placeholder="you@email.com" required autocomplete="email">
-          <button type="submit">Notify me</button>
-        </form>
+        <p class="coming-soon">Pre-release. Boot from USB or test in a VM.</p>
+        <a href="https://github.com/Bruce-OS/BruceOS/releases/latest/download/BruceOS-1.0-x86_64.iso" class="download-btn">Download ISO (x86_64)</a>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">~2 GB &middot; UEFI recommended &middot; 4 GB+ RAM &middot; <a href="https://github.com/Bruce-OS/BruceOS/releases" style="color: var(--accent);">All releases</a></p>
       </div>
     </section>
 

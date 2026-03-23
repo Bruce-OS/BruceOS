@@ -107,7 +107,7 @@ export default defineConfig({
 
     footer: {
       message: "Released under the GPL-2.0 License.",
-      copyright: "Copyright &copy; 2025-present BruceOS Inc.",
+      copyright: "Copyright &copy; 2024-present BruceOS Inc.",
     },
   },
 });
