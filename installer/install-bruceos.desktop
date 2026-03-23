@@ -3,7 +3,7 @@ Type=Application
 Name=Install BruceOS
 GenericName=System Installer
 Comment=Install BruceOS to your hard drive
-Exec=pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY WAYLAND_DISPLAY=$WAYLAND_DISPLAY XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR calamares
+Exec=calamares
 Icon=bruceos-logo
 Terminal=false
 Categories=System;
