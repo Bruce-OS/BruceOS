@@ -94,9 +94,6 @@ google-noto-sans-mono-fonts
 jetbrains-mono-fonts-all
 cascadia-code-fonts
 
-# Exclude os-prober (hangs during Calamares partition detection)
--os-prober
-
 # CachyOS BORE kernel (from COPR repo above)
 kernel-cachyos
 -kernel
@@ -218,7 +215,11 @@ cat > /usr/local/bin/bruceos-install << 'INSTALLEOF'
 #!/bin/bash
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+# Disable os-prober at runtime (causes partition module hang)
+sudo chmod -x /usr/bin/os-prober 2>/dev/null
 sudo -E /usr/bin/calamares "$@"
+# Re-enable after
+sudo chmod +x /usr/bin/os-prober 2>/dev/null
 INSTALLEOF
 chmod +x /usr/local/bin/bruceos-install
 
