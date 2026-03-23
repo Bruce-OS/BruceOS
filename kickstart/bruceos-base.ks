@@ -56,8 +56,9 @@ repo --name=rpmfusion-nonfree --mirrorlist=https://mirrors.rpmfusion.org/mirrorl
 @multimedia
 gnome-shell
 gdm
-gnome-terminal
 gnome-tweaks
+-gnome-terminal
+-gnome-console
 gnome-software
 nautilus
 evince
@@ -178,16 +179,15 @@ dnf install -y kernel-cachyos kernel-cachyos-devel-matched || {
 }
 
 #--- Terminal tools from COPR (not in base Fedora repos) ---
-dnf copr enable -y atim/starship
-dnf copr enable -y atim/lazygit
-dnf copr enable -y pgdev/ghostty
-dnf install -y ghostty starship eza lazygit yazi zellij || {
-    echo "WARN: Some terminal tools failed to install from COPR"
-    # Install what we can individually
-    for pkg in ghostty starship eza lazygit yazi zellij; do
-        dnf install -y "$pkg" || echo "WARN: $pkg not available"
-    done
-}
+# Use explicit fedora-43-x86_64 chroot because os-release says "bruceos"
+dnf copr enable -y atim/starship fedora-43-x86_64
+dnf copr enable -y atim/lazygit fedora-43-x86_64
+dnf copr enable -y pgdev/ghostty fedora-43-x86_64
+# Ghostty conflicts with ncurses-term on terminfo file — force replace
+for pkg in starship eza lazygit yazi zellij; do
+    dnf install -y "$pkg" || echo "WARN: $pkg not available"
+done
+dnf download -y ghostty && rpm -i --replacefiles ghostty-*.rpm && rm -f ghostty-*.rpm || echo "WARN: ghostty not available"
 
 #--- RPM Fusion repos (for multimedia codecs, NVIDIA drivers) ---
 dnf install -y \
