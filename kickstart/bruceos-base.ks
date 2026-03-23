@@ -70,6 +70,11 @@ gnome-system-monitor
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
 
+# Plymouth boot splash
+plymouth
+plymouth-scripts
+plymouth-theme-spinner
+
 # Fonts
 google-noto-sans-fonts
 google-noto-serif-fonts
@@ -244,6 +249,20 @@ symbol = " "
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
 STARSHIPEOF
+
+#--- Plymouth BruceOS theme ---
+# Install theme files from build source if available
+if [ -d /build/theme/plymouth/bruceos ]; then
+    mkdir -p /usr/share/plymouth/themes/bruceos
+    cp /build/theme/plymouth/bruceos/* /usr/share/plymouth/themes/bruceos/
+    plymouth-set-default-theme bruceos || true
+else
+    # Fallback: use spinner theme with BruceOS branding
+    plymouth-set-default-theme spinner || true
+fi
+
+# Override os-release for Plymouth branding
+# (Plymouth reads PRETTY_NAME from os-release)
 
 #--- GPU auto-detection ---
 # Detect GPU and install appropriate drivers

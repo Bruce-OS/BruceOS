@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a5fb4"/>
+      <stop offset="100%" style="stop-color:#3584e4"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon -->
+  <rect x="0" y="12" width="176" height="176" rx="32" fill="url(#bg)"/>
+  <text x="88" y="148" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="140" fill="white" text-anchor="middle">B</text>
+  <!-- Text -->
+  <text x="210" y="138" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="120" fill="#e6edf3" letter-spacing="-3">
+    <tspan fill="#e6edf3">Bruce</tspan><tspan fill="#3584e4">OS</tspan>
+  </text>
+</svg>

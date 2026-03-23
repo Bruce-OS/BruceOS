@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=BruceOS
+Description=BruceOS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/bruceos
+ScriptFile=/usr/share/plymouth/themes/bruceos/bruceos.script

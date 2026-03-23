@@ -75,10 +75,14 @@ bruceos/
 
 ### Build System
 - Fedora 43+ base, built via `lorax`/`livemedia-creator` from kickstart
-- All package additions go through kickstart `%packages` section
-- COPR repos for non-Fedora packages
+- All package additions go through kickstart `%packages` section or `%post` (COPR packages go in `%post`)
+- COPR repos for non-Fedora packages (ghostty, starship, eza, lazygit, yazi, zellij)
 - ARM64 (Pi) built separately via `bruceos-pi.ks`
 - ISO built in Podman container for reproducibility
+- Always validate kickstart before building: `ksvalidator kickstart/bruceos-base.ks`
+- Build locally with: `sudo podman run --rm --privileged --pid=host --security-opt label=disable -v /dev:/dev -v /path/to/BruceOS:/build fedora:43 bash -c "bash /build/iso/build.sh bruceos-base.ks"`
+- Use `/build` slash command for one-step local builds
+- Test ISOs in GNOME Boxes (Fedora 43 profile, UEFI, 4GB+ RAM)
 
 ### Package Naming Convention
 - All BruceOS packages prefixed `bruce-`
