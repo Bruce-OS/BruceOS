@@ -9,6 +9,9 @@ output/
 *.swo
 *~
 
+# Debug screenshots
+image*.png
+
 # OS
 .DS_Store
 Thumbs.db
