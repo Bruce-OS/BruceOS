@@ -2,6 +2,13 @@
 output/
 *.iso
 
+# Generated theme assets (built from SVGs by theme/generate-assets.sh)
+theme/wallpaper.png
+theme/branding/*.png
+theme/branding/*.svg
+theme/plymouth/bruceos/logo.png
+theme/plymouth/bruceos/spinner-*.png
+
 # Node / VitePress
 node_modules/
 docs/.vitepress/dist/

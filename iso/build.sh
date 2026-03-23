@@ -28,10 +28,18 @@ echo ""
 # Install build dependencies
 # anaconda is required for --no-virt mode
 # grub2/shim packages are needed in the build root for lorax ISO assembly
+# librsvg2-tools + ImageMagick for theme asset generation
 dnf install -y lorax livecd-tools anaconda \
     grub2-efi-x64 grub2-efi-x64-modules grub2-efi-x64-cdboot \
     grub2-pc grub2-pc-modules \
-    shim-x64 syslinux syslinux-nonlinux xorriso
+    shim-x64 syslinux syslinux-nonlinux xorriso \
+    librsvg2-tools ImageMagick
+
+# Generate theme assets (wallpaper, branding logos, Plymouth PNGs)
+if [ -x "${PROJECT_DIR}/theme/generate-assets.sh" ]; then
+    echo "Generating theme assets..."
+    bash "${PROJECT_DIR}/theme/generate-assets.sh"
+fi
 
 # livemedia-creator requires resultdir to NOT exist — remove if present
 if [ -d "${OUTPUT_DIR}" ]; then

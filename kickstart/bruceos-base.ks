@@ -251,18 +251,31 @@ error_symbol = "[❯](bold red)"
 STARSHIPEOF
 
 #--- Plymouth BruceOS theme ---
-# Install theme files from build source if available
 if [ -d /build/theme/plymouth/bruceos ]; then
     mkdir -p /usr/share/plymouth/themes/bruceos
     cp /build/theme/plymouth/bruceos/* /usr/share/plymouth/themes/bruceos/
     plymouth-set-default-theme bruceos || true
 else
-    # Fallback: use spinner theme with BruceOS branding
     plymouth-set-default-theme spinner || true
 fi
 
-# Override os-release for Plymouth branding
-# (Plymouth reads PRETTY_NAME from os-release)
+#--- BruceOS wallpaper ---
+if [ -f /build/theme/wallpaper.png ]; then
+    mkdir -p /usr/share/backgrounds/bruceos
+    cp /build/theme/wallpaper.png /usr/share/backgrounds/bruceos/wallpaper.png
+fi
+
+#--- White-label: replace Fedora logos with BruceOS ---
+if [ -d /build/theme/branding ]; then
+    for logo in /build/theme/branding/*.png /build/theme/branding/*.svg; do
+        [ -f "$logo" ] || continue
+        fname=$(basename "$logo")
+        # Replace in pixmaps
+        [ -f "/usr/share/pixmaps/$fname" ] && cp -f "$logo" "/usr/share/pixmaps/$fname"
+        # Replace in fedora-logos
+        [ -f "/usr/share/fedora-logos/$fname" ] && cp -f "$logo" "/usr/share/fedora-logos/$fname"
+    done
+fi
 
 #--- GPU auto-detection ---
 # Detect GPU and install appropriate drivers
@@ -317,51 +330,22 @@ echo "=== BruceOS post-install complete ==="
 %end
 
 #--------------------------------------
-# Post-install — WhiteSur theme (needs network, best-effort)
-# NOTE: This step is skipped during offline install.
+# Post-install — GNOME desktop theming (no network required)
 #--------------------------------------
 %post --nochroot --log=/mnt/sysimage/root/bruceos-theme.log
 #!/bin/bash
 set -uo pipefail
 
-echo "=== Installing WhiteSur theme ==="
+echo "=== Configuring BruceOS GNOME desktop ==="
 
-# Check for network — skip gracefully if offline
-if ! curl -s --connect-timeout 5 https://github.com > /dev/null 2>&1; then
-    echo "WARN: No network available — skipping WhiteSur theme download"
-    echo "Theme can be installed later via bruce-setup"
-    exit 0
-fi
-
-# Clone WhiteSur GTK theme into the installed system
 SYSROOT=/mnt/sysimage
-THEME_DIR="${SYSROOT}/usr/share/themes"
-ICON_DIR="${SYSROOT}/usr/share/icons"
-
-# Download WhiteSur theme
-cd /tmp
-git clone --depth=1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git || true
-if [ -d WhiteSur-gtk-theme ]; then
-    cd WhiteSur-gtk-theme
-    mkdir -p "${THEME_DIR}"
-    ./install.sh -d "${THEME_DIR}" -c Dark -t default || true
-    cd /tmp
-fi
-
-# Download WhiteSur icon theme
-git clone --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git || true
-if [ -d WhiteSur-icon-theme ]; then
-    cd WhiteSur-icon-theme
-    mkdir -p "${ICON_DIR}"
-    ./install.sh -d "${ICON_DIR}" || true
-fi
 
 #--- Set GNOME defaults via dconf ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cat > "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
 [org/gnome/desktop/interface]
-gtk-theme='WhiteSur-Dark'
-icon-theme='WhiteSur-dark'
+gtk-theme='Adwaita-dark'
+icon-theme='Adwaita'
 cursor-theme='Adwaita'
 font-name='Noto Sans 11'
 document-font-name='Noto Sans 11'
@@ -371,6 +355,14 @@ color-scheme='prefer-dark'
 [org/gnome/desktop/wm/preferences]
 titlebar-font='Noto Sans Bold 11'
 button-layout='close,minimize,maximize:'
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
+picture-uri-dark='file:///usr/share/backgrounds/bruceos/wallpaper.png'
+picture-options='zoom'
+
+[org/gnome/desktop/screensaver]
+picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
 favorite-apps=['org.gnome.Nautilus.desktop', 'ghostty.desktop', 'firefox.desktop', 'org.gnome.Software.desktop']
@@ -382,10 +374,25 @@ dock-position='BOTTOM'
 dock-fixed=true
 extend-height=false
 transparency-mode='DYNAMIC'
+background-opacity=0.6
+custom-theme-shrink=true
+
+[org/gnome/shell/extensions/user-theme]
+name='Adwaita-dark'
 DCONFEOF
+
+# Lock dark mode so it can't be accidentally toggled
+mkdir -p "${SYSROOT}/etc/dconf/db/local.d/locks"
+cat > "${SYSROOT}/etc/dconf/db/local.d/locks/01-bruceos" << 'LOCKEOF'
+/org/gnome/desktop/interface/color-scheme
+/org/gnome/desktop/interface/gtk-theme
+LOCKEOF
 
 # Compile dconf database
 chroot "${SYSROOT}" dconf update || true
 
-echo "=== WhiteSur theme install complete ==="
+# Flatpak dark mode
+chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null || true
+
+echo "=== BruceOS GNOME desktop configured ==="
 %end
