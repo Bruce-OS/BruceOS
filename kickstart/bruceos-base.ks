@@ -201,8 +201,11 @@ dnf install -y gstreamer1-plugins-bad-free gstreamer1-plugins-ugly \
 #--- Flathub for optional user apps ---
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 
-#--- Set Fish as default shell for new users ---
-chsh -s /usr/bin/fish
+#--- Set Fish as default shell ---
+chsh -s /usr/bin/fish root
+chsh -s /usr/bin/fish liveuser
+# Set Fish as default for any future users
+sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd 2>/dev/null || true
 
 #--- Install system-wide Ghostty config ---
 mkdir -p /etc/ghostty
