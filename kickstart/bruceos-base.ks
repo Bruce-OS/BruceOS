@@ -610,6 +610,9 @@ for conf in /build/installer/modules/*.conf; do
     [ -f "$conf" ] && cp "$conf" "${SYSROOT}/etc/calamares/modules/"
 done
 
+# Remove default shellprocess.conf (has example "slowloris" command that crashes install)
+rm -f "${SYSROOT}/usr/share/calamares/modules/shellprocess.conf"
+
 # Install BruceOS branding
 BRANDING_DEST="${SYSROOT}/usr/share/calamares/branding/bruceos"
 mkdir -p "${BRANDING_DEST}"
