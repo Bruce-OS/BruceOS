@@ -1,5 +1,5 @@
 // BruceOS Plymouth Boot Theme
-// Minimal spinner with BruceOS logo on dark background
+// Logo + rotating status messages like macOS
 
 // Background
 Window.SetBackgroundTopColor(0.04, 0.04, 0.04);     // #0a0a0a
@@ -9,7 +9,7 @@ Window.SetBackgroundBottomColor(0.04, 0.04, 0.04);
 logo.image = Image("logo.png");
 logo.sprite = Sprite(logo.image);
 logo.sprite.SetX(Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
-logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 40);
+logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 60);
 logo.sprite.SetOpacity(1);
 
 // Spinner
@@ -21,19 +21,61 @@ for (i = 0; i < spinner_count; i++) {
 
 spinner.sprite = Sprite();
 spinner.sprite.SetX(Window.GetWidth() / 2 - spinner_images[0].GetWidth() / 2);
-spinner.sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 20);
+spinner.sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2);
+
+// Status messages — rotate through these during boot
+messages = [
+    "Waking up...",
+    "Loading the good stuff...",
+    "Checking your hardware...",
+    "Setting up your desktop...",
+    "Tuning for performance...",
+    "Preparing your terminal...",
+    "Almost there...",
+    "Bruce is getting ready...",
+    "Final touches...",
+    "Welcome to BruceOS."
+];
+
+message_count = 10;
+message_index = 0;
+message_timer = 0;
+message_interval = 90;  // frames between message changes (~3 sec at 30fps)
+
+// Create text sprite for status message
+status_sprite = Sprite();
+status_sprite.SetX(Window.GetWidth() / 2);
+status_sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 80);
 
 progress = 0;
 
 fun refresh_callback() {
+    // Animate spinner
     spinner.sprite.SetImage(spinner_images[Math.Int(progress) % spinner_count]);
+
+    // Rotate status messages
+    message_timer++;
+    if (message_timer >= message_interval) {
+        message_timer = 0;
+        message_index++;
+        if (message_index >= message_count) {
+            message_index = message_count - 1;  // stay on last message
+        }
+    }
+
+    // Render current message as image
+    msg_image = Image.Text(messages[message_index], 0.63, 0.63, 0.63);  // #a1a1a1 muted
+    status_sprite.SetImage(msg_image);
+    status_sprite.SetX(Window.GetWidth() / 2 - msg_image.GetWidth() / 2);
+
     progress++;
 }
 
 Plymouth.SetRefreshFunction(refresh_callback);
 
-// Hide messages and password prompts cleanly
+// Handle system messages (pass through)
 fun message_callback(text) {
+    // Could display system messages too, but we use our own
 }
 
 Plymouth.SetMessageFunction(message_callback);
