@@ -342,6 +342,23 @@ fi
 #--- Hostname ---
 hostnamectl set-hostname bruceos 2>/dev/null || echo "bruceos" > /etc/hostname
 
+#--- Skip GNOME tour on first login ---
+mkdir -p /home/liveuser/.config
+touch /home/liveuser/.config/gnome-initial-setup-done
+chown -R liveuser:liveuser /home/liveuser/.config 2>/dev/null || true
+
+#--- Auto-launch Calamares installer on login ---
+mkdir -p /home/liveuser/.config/autostart
+cat > /home/liveuser/.config/autostart/bruceos-install.desktop << 'AUTOEOF'
+[Desktop Entry]
+Type=Application
+Name=Install BruceOS
+Exec=bruceos-install
+Terminal=false
+X-GNOME-Autostart-enabled=true
+AUTOEOF
+chown -R liveuser:liveuser /home/liveuser/.config 2>/dev/null || true
+
 #--- First-boot service for Flatpak + Flathub ---
 cat > /etc/systemd/system/bruceos-first-boot.service << 'UNITEOF'
 [Unit]
