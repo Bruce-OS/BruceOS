@@ -4,7 +4,7 @@ layout: home
 hero:
   name: BruceOS
   text: They call me Bruce.
-  tagline: An operating system with built-in AI, a proper terminal, and gaming that works.
+  tagline: An operating system for you. All your favourite apps, gaming that works, built-in agents, and a terminal for nerds.
   image:
     src: /logo.svg
     alt: BruceOS

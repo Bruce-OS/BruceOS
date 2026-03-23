@@ -6,7 +6,7 @@
 
 **They call me Bruce.**
 
-An operating system with built-in AI, a proper terminal, and gaming that works — built on Fedora 43, the CachyOS BORE kernel, and a quiet confidence that things should just work out of the box.
+An operating system for you. All your favourite apps, gaming that works, built-in agents, and a terminal for nerds — built on Fedora 43, the CachyOS BORE kernel, and a quiet confidence that things should just work out of the box.
 
 [![Build](https://img.shields.io/github/actions/workflow/status/Bruce-OS/BruceOS/build-iso.yml?style=flat-square&label=ISO%20Build&color=10b981)](https://github.com/Bruce-OS/BruceOS/actions)
 [![License: GPL-2.0](https://img.shields.io/badge/license-GPL--2.0-white?style=flat-square)](LICENSE)
