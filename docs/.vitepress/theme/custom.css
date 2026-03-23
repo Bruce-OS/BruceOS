@@ -130,6 +130,27 @@
   letter-spacing: -0.01em;
 }
 
+/* Colour "Bruce" green in nav title */
+.VPNavBarTitle .title span {
+  font-size: 0;
+}
+
+.VPNavBarTitle .title span::after {
+  content: "BruceOS";
+  font-size: 1rem;
+}
+
+.VPNavBarTitle .title span::before {
+  content: "Bruce";
+  font-size: 1rem;
+  color: #10b981;
+}
+
+.VPNavBarTitle .title span::after {
+  content: "OS";
+  color: #f5f5f5;
+}
+
 /* ----- Custom scrollbar for dark theme ----- */
 .dark ::-webkit-scrollbar {
   width: 8px;
