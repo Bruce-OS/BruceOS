@@ -197,6 +197,18 @@ GDMEOF
 echo "liveuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/liveuser
 chmod 440 /etc/sudoers.d/liveuser
 
+# Polkit rule so liveuser can launch Calamares without password prompt
+mkdir -p /etc/polkit-1/rules.d
+cat > /etc/polkit-1/rules.d/49-bruceos-calamares.rules << 'POLKITEOF'
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.policykit.exec" &&
+        action.lookup("program") == "/usr/bin/calamares" &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+POLKITEOF
+
 #--- Set Fish as default shell ---
 chsh -s /usr/bin/fish root || echo "WARN: chsh root failed"
 chsh -s /usr/bin/fish liveuser || echo "WARN: chsh liveuser failed"
