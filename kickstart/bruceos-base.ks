@@ -19,7 +19,7 @@ network --bootproto=dhcp --activate --hostname=bruceos
 #--------------------------------------
 zerombr
 clearpart --all --initlabel
-part / --fstype=ext4 --size=16384 --label=BruceOS
+part / --fstype=ext4 --size=20480 --label=BruceOS
 
 #--------------------------------------
 # Bootloader
@@ -200,6 +200,11 @@ chmod 440 /etc/sudoers.d/liveuser
 #--- Set Fish as default shell ---
 chsh -s /usr/bin/fish root || echo "WARN: chsh root failed"
 chsh -s /usr/bin/fish liveuser || echo "WARN: chsh liveuser failed"
+
+#--- Fix liveuser home directory ownership ---
+mkdir -p /home/liveuser/.local/share
+mkdir -p /home/liveuser/.config/fish
+chown -R liveuser:liveuser /home/liveuser || echo "WARN: chown liveuser failed"
 sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd 2>/dev/null || true
 
 #--- Ghostty config ---
