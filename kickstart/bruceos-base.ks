@@ -169,7 +169,8 @@ iwlwifi-*-firmware
 #--------------------------------------
 %post --log=/root/bruceos-post.log
 #!/bin/bash
-set -euo pipefail
+# NO set -e — errors must not abort the entire post-install
+set -uo pipefail
 
 echo "=== BruceOS post-install starting ==="
 
@@ -197,8 +198,8 @@ echo "liveuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/liveuser
 chmod 440 /etc/sudoers.d/liveuser
 
 #--- Set Fish as default shell ---
-chsh -s /usr/bin/fish root
-chsh -s /usr/bin/fish liveuser
+chsh -s /usr/bin/fish root || echo "WARN: chsh root failed"
+chsh -s /usr/bin/fish liveuser || echo "WARN: chsh liveuser failed"
 sed -i 's|^SHELL=.*|SHELL=/usr/bin/fish|' /etc/default/useradd 2>/dev/null || true
 
 #--- Ghostty config ---
