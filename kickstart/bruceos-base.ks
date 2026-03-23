@@ -74,6 +74,8 @@ gnome-text-editor
 gnome-system-monitor
 -gnome-terminal
 -gnome-console
+-gnome-tour
+-gnome-initial-setup
 
 # GNOME extensions
 gnome-shell-extension-dash-to-dock
