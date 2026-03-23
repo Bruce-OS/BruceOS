@@ -96,6 +96,11 @@ cascadia-code-fonts
 
 # CachyOS BORE kernel (from COPR repo above)
 kernel-cachyos
+-kernel
+-kernel-core
+-kernel-modules
+-kernel-modules-core
+-kernel-modules-extra
 
 # Terminal stack (ghostty installed in %post --nochroot due to ncurses-term conflict)
 fish
