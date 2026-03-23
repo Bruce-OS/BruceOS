@@ -94,6 +94,9 @@ google-noto-sans-mono-fonts
 jetbrains-mono-fonts-all
 cascadia-code-fonts
 
+# Exclude os-prober (hangs during Calamares partition detection)
+-os-prober
+
 # CachyOS BORE kernel (from COPR repo above)
 kernel-cachyos
 -kernel

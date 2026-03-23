@@ -17,12 +17,12 @@ welcomeExpandingLogo: true
 ### WINDOW CONFIGURATION
 
 windowExpanding:    normal
-windowSize:         800px,520px
+windowSize:         1100px,580px
 windowPlacement:    center
 
 ### PANELS CONFIGURATION
 
-sidebar:     widget
+sidebar:     qml,bottom
 navigation:  widget
 
 ### STRINGS, IMAGES AND COLORS
