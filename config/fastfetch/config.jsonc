@@ -1,0 +1,13 @@
+{
+  "logo": {
+    "source": "/etc/fastfetch/logo.txt",
+    "type": "raw",
+    "color": { "1": "green" }
+  },
+  "modules": [
+    "title", "separator",
+    "os", "kernel", "uptime", "packages",
+    "shell", "terminal", "cpu", "gpu",
+    "memory", "disk", "break", "colors"
+  ]
+}

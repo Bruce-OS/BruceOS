@@ -70,6 +70,9 @@ gnome-system-monitor
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
 
+# VM clipboard support
+spice-vdagent
+
 # Plymouth boot splash
 plymouth
 plymouth-scripts
@@ -226,7 +229,46 @@ alias ls="eza --icons"
 alias ll="eza -la --icons"
 alias cat="bat --paging=never"
 alias tree="eza --tree --icons"
+
+# Show BruceOS info on first shell in terminal
+if status is-interactive; and not set -q BRUCE_GREETED
+    set -g BRUCE_GREETED 1
+    fastfetch --config /etc/fastfetch/config.jsonc 2>/dev/null
+end
 FISHEOF
+
+#--- Fastfetch BruceOS branding ---
+mkdir -p /etc/fastfetch
+cat > /etc/fastfetch/logo.txt << 'FFLOGOEOF'
+${c1}         ██████████
+        ████████████
+       ██████  ██████
+       █████    █████
+       █████  ██████
+       ██████████████
+       █████  ██████
+       █████    █████
+       █████  ██████
+       ██████████████
+        ████████████
+         ██████████
+FFLOGOEOF
+
+cat > /etc/fastfetch/config.jsonc << 'FFCONFEOF'
+{
+  "logo": {
+    "source": "/etc/fastfetch/logo.txt",
+    "type": "raw",
+    "color": { "1": "green" }
+  },
+  "modules": [
+    "title", "separator",
+    "os", "kernel", "uptime", "packages",
+    "shell", "terminal", "cpu", "gpu",
+    "memory", "disk", "break", "colors"
+  ]
+}
+FFCONFEOF
 
 #--- Install system-wide Starship config ---
 mkdir -p /etc/xdg
