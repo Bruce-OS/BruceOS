@@ -708,6 +708,16 @@ if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; the
     sed -i 's|^Icon=.*|Icon=org.gnome.Terminal|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
 fi
 
+#--- Red Hat fonts (brand fonts) ---
+mkdir -p "${SYSROOT}/usr/share/fonts/redhat-fonts"
+curl -sL https://github.com/RedHatOfficial/RedHatFont/archive/refs/heads/master.tar.gz -o /tmp/rh-fonts.tar.gz && \
+    tar xf /tmp/rh-fonts.tar.gz -C /tmp/ && \
+    cp /tmp/RedHatFont-master/fonts/Proportional/RedHatDisplay/ttf/*.ttf "${SYSROOT}/usr/share/fonts/redhat-fonts/" && \
+    cp /tmp/RedHatFont-master/fonts/Proportional/RedHatText/ttf/*.ttf "${SYSROOT}/usr/share/fonts/redhat-fonts/" && \
+    rm -rf /tmp/RedHatFont-master /tmp/rh-fonts.tar.gz && \
+    chroot "${SYSROOT}" fc-cache -f 2>/dev/null && \
+    echo "Red Hat fonts installed" || echo "WARN: Red Hat fonts install failed"
+
 #--- MoreWaita icons (fills gaps for 1400+ apps) ---
 curl -sL https://github.com/somepaulo/MoreWaita/archive/refs/heads/main.tar.gz -o /tmp/morewaita.tar.gz && \
     tar xf /tmp/morewaita.tar.gz -C /tmp/ && \
@@ -794,14 +804,14 @@ cat > "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
 gtk-theme='Adwaita'
 icon-theme='BruceOS'
 cursor-theme='Adwaita'
-font-name='Noto Sans 11'
-document-font-name='Noto Sans 11'
+font-name='Red Hat Text 11'
+document-font-name='Red Hat Text 11'
 monospace-font-name='JetBrains Mono 13'
 color-scheme='prefer-dark'
 accent-color='green'
 
 [org/gnome/desktop/wm/preferences]
-titlebar-font='Noto Sans Bold 11'
+titlebar-font='Red Hat Display Bold 11'
 button-layout=':minimize,maximize,close'
 
 [org/gnome/desktop/background]
@@ -920,6 +930,9 @@ mkdir -p "${SYSROOT}/etc/skel/.config/gtk-4.0"
 cp "${SYSROOT}/etc/gtk-4.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-4.0/gtk.css"
 mkdir -p "${SYSROOT}/etc/skel/.config/gtk-3.0"
 cp "${SYSROOT}/etc/gtk-3.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-3.0/gtk.css"
+
+# Default user avatar (BruceOS logo)
+cp "${SYSROOT}/usr/share/pixmaps/bruceos-logo.png" "${SYSROOT}/etc/skel/.face"
 
 # GNOME Shell theme
 mkdir -p "${SYSROOT}/usr/share/themes/BruceOS/gnome-shell"

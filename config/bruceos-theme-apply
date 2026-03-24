@@ -1,0 +1,258 @@
+#!/bin/bash
+# BruceOS Theme Apply — centralized accent color system
+# Usage: bruceos-theme-apply [--full] [--init]
+#   --full  Also recolor icon SVGs (slower, requires logout)
+#   --init  Save current colors as baseline for icon recoloring
+#
+# Reads /etc/bruceos/theme.conf (HSL values) and generates all colors.
+set -uo pipefail
+
+CONF="/etc/bruceos/theme.conf"
+ORIG="/etc/bruceos/theme.original"
+
+if [ ! -f "$CONF" ]; then
+    echo "ERROR: $CONF not found"
+    exit 1
+fi
+source "$CONF"
+
+# --- HSL to RGB/Hex conversion ---
+hsl2hex() {
+    local h=$1 s=$2 l=$3
+    python3 -c "
+import colorsys
+r, g, b = colorsys.hls_to_rgb($h/360, $l/100, $s/100)
+print('#%02x%02x%02x' % (int(r*255), int(g*255), int(b*255)))
+"
+}
+
+hsl2rgb() {
+    local h=$1 s=$2 l=$3
+    python3 -c "
+import colorsys
+r, g, b = colorsys.hls_to_rgb($h/360, $l/100, $s/100)
+print('%d, %d, %d' % (int(r*255), int(g*255), int(b*255)))
+"
+}
+
+# Generate color palette from HSL
+H=${ACCENT_HUE}
+S=${ACCENT_SAT}
+L=${ACCENT_LIT}
+
+ACCENT_PRIMARY=$(hsl2hex $H $S $L)
+ACCENT_DARK=$(hsl2hex $H $S $((L - 10 < 5 ? 5 : L - 10)))
+ACCENT_LIGHT=$(hsl2hex $H $((S - 10 < 0 ? 0 : S - 10)) $((L + 20 > 95 ? 95 : L + 20)))
+ACCENT_DARKER=$(hsl2hex $H $S $((L - 20 < 5 ? 5 : L - 20)))
+ACCENT_TEXT_ON_ACCENT=$(hsl2hex $H $S $((L > 50 ? 10 : 95)))
+ACCENT_RGB=$(hsl2rgb $H $S $L)
+ACCENT_RGBA_15="rgba(${ACCENT_RGB}, 0.15)"
+ACCENT_RGBA_25="rgba(${ACCENT_RGB}, 0.25)"
+ACCENT_RGBA_60="rgba(${ACCENT_RGB}, 0.6)"
+# Wallpaper OS tint — very dark, barely visible
+ACCENT_WP_TINT=$(hsl2hex $H $((S / 4)) $((L / 5 < 6 ? 6 : L / 5)))
+
+# Get OS version dynamically
+BRUCEOS_VERSION=$(grep '^VERSION=' /etc/os-release 2>/dev/null | tr -d '"' | cut -d= -f2)
+BRUCEOS_VERSION="${BRUCEOS_VERSION:-1.0}"
+
+echo "Applying accent: H=$H S=$S L=$L"
+echo "  PRIMARY:  $ACCENT_PRIMARY"
+echo "  DARK:     $ACCENT_DARK"
+echo "  LIGHT:    $ACCENT_LIGHT"
+echo "  DARKER:   $ACCENT_DARKER"
+
+# --- GNOME accent color ---
+dconf write /org/gnome/desktop/interface/accent-color "'${GNOME_ACCENT}'" 2>/dev/null || true
+
+# --- GNOME Shell theme ---
+SHELL_CSS="/usr/share/themes/BruceOS/gnome-shell/gnome-shell.css"
+cat > "$SHELL_CSS" << CSSEOF
+@import url("resource:///org/gnome/shell/theme/gnome-shell.css");
+
+#panel {
+    background-color: #242424;
+    height: 32px;
+    font-weight: 400;
+    font-size: 12px;
+}
+#panel .panel-button {
+    font-weight: 400;
+    -natural-hpadding: 8px;
+}
+#panel .system-status-icon {
+    icon-size: 15px;
+}
+
+/* Quick settings toggles */
+.quick-toggle {
+    background-color: ${ACCENT_RGBA_15};
+    border-radius: 10px;
+}
+.quick-toggle:hover {
+    background-color: ${ACCENT_RGBA_25};
+}
+.quick-toggle:checked {
+    background-color: ${ACCENT_PRIMARY};
+    color: ${ACCENT_TEXT_ON_ACCENT};
+}
+.quick-toggle:checked:hover {
+    background-color: ${ACCENT_LIGHT};
+    color: ${ACCENT_TEXT_ON_ACCENT};
+}
+.quick-toggle:checked:active {
+    background-color: ${ACCENT_DARKER};
+}
+.quick-toggle-has-menu .quick-toggle:ltr {
+    border-radius: 10px 0 0 10px;
+}
+.quick-toggle-has-menu .quick-toggle-menu-button:ltr {
+    border-radius: 0 10px 10px 0;
+}
+
+/* Slider */
+.quick-slider .slider, .slider {
+    color: ${ACCENT_PRIMARY};
+    -slider-color: ${ACCENT_PRIMARY};
+    -barlevel-active-background-color: ${ACCENT_PRIMARY};
+    -barlevel-active-foreground-color: ${ACCENT_PRIMARY};
+}
+
+/* Calendar */
+.calendar .calendar-day.calendar-today {
+    background-color: ${ACCENT_DARK};
+    color: white;
+}
+
+/* Toggle switches */
+.toggle-switch:checked { background-color: ${ACCENT_PRIMARY}; }
+.toggle-switch:checked:hover { background-color: ${ACCENT_LIGHT}; }
+
+/* Icon buttons */
+.icon-button:checked { background-color: ${ACCENT_DARK}; }
+.icon-button:checked:hover { background-color: ${ACCENT_PRIMARY}; }
+
+/* Corners */
+.quick-settings-menu, .quick-settings { border-radius: 12px; }
+.message { border-radius: 10px; }
+.notification-banner { border-radius: 12px; }
+.popup-menu-content { border-radius: 12px; }
+.modal-dialog { border-radius: 12px; }
+.search-entry { border-radius: 10px; }
+.app-well-app .overview-icon { border-radius: 12px; }
+.calendar { border-radius: 12px; }
+#dashtodockContainer #dash, #dash, .dash-background { border-radius: 12px; }
+
+/* Focus */
+*:focus { outline-color: ${ACCENT_RGBA_60}; }
+CSSEOF
+
+# --- GTK4 accent ---
+for dir in /etc/gtk-4.0 "$HOME/.config/gtk-4.0"; do
+    mkdir -p "$dir"
+    cat > "$dir/gtk.css" << GTKEOF
+@define-color accent_color ${ACCENT_PRIMARY};
+@define-color accent_bg_color ${ACCENT_DARK};
+@define-color accent_fg_color #ffffff;
+GTKEOF
+done
+
+# --- GTK3 accent ---
+for dir in /etc/gtk-3.0 "$HOME/.config/gtk-3.0"; do
+    mkdir -p "$dir"
+    cat > "$dir/gtk.css" << GTKEOF
+@define-color accent_color ${ACCENT_PRIMARY};
+@define-color accent_bg_color ${ACCENT_DARK};
+@define-color accent_fg_color #ffffff;
+@define-color theme_selected_bg_color ${ACCENT_DARK};
+@define-color theme_selected_fg_color #ffffff;
+GTKEOF
+done
+
+# --- Ghostty ---
+GHOSTTY_CONF="$HOME/.config/ghostty/config"
+if [ -f "$GHOSTTY_CONF" ]; then
+    sed -i "s/cursor-color = .*/cursor-color = ${ACCENT_PRIMARY}/" "$GHOSTTY_CONF"
+    sed -i "s/selection-background = .*/selection-background = ${ACCENT_DARK}/" "$GHOSTTY_CONF"
+    sed -i "s/^palette = 2=.*/palette = 2=${ACCENT_PRIMARY}/" "$GHOSTTY_CONF"
+    sed -i "s/^palette = 10=.*/palette = 10=${ACCENT_LIGHT}/" "$GHOSTTY_CONF"
+fi
+
+# --- BruceOS logo extension ---
+for ext_dir in "$HOME/.local/share/gnome-shell/extensions/bruceos-logo@bruceos.com" \
+               "/usr/share/gnome-shell/extensions/bruceos-logo@bruceos.com"; do
+    if [ -f "$ext_dir/extension.js" ]; then
+        sed -i "s/background-color: #[0-9a-fA-F]\{6\}/background-color: ${ACCENT_DARK}/" "$ext_dir/extension.js"
+    fi
+done
+
+# --- Wallpaper SVG ---
+WALLPAPER="/usr/share/backgrounds/bruceos/wallpaper.svg"
+if [ -f "$WALLPAPER" ]; then
+    cat > "$WALLPAPER" << WPEOF
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <rect width="3840" height="2160" fill="#0a0a0a"/>
+  <g transform="translate(1920, 1080)">
+    <text x="0" y="0" font-family="Red Hat Display, sans-serif" text-anchor="middle" dominant-baseline="alphabetic" opacity="0.3">
+      <tspan font-weight="700" font-size="280" fill="${ACCENT_WP_TINT}">OS</tspan><tspan font-weight="300" font-size="50" fill="${ACCENT_DARK}">b</tspan>
+    </text>
+    <text x="0" y="60" font-family="Red Hat Text, sans-serif" font-weight="300" font-size="36" fill="#4a4a4a" text-anchor="middle" opacity="0.6">v${BRUCEOS_VERSION}</text>
+  </g>
+</svg>
+WPEOF
+fi
+
+# --- Icon SVGs (only with --full) ---
+if [[ "${1:-}" == "--full" ]]; then
+    echo "Recoloring icons..."
+
+    if [ ! -f "$ORIG" ]; then
+        echo "ERROR: $ORIG not found. Run 'bruceos-theme-apply --init' first."
+        exit 1
+    fi
+
+    # Load old colors from original
+    source "$ORIG"
+    OLD_PRIMARY=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $ACCENT_LIT)
+    OLD_DARK=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $((ACCENT_LIT - 10 < 5 ? 5 : ACCENT_LIT - 10)))
+    OLD_LIGHT=$(hsl2hex $ACCENT_HUE $((ACCENT_SAT - 10 < 0 ? 0 : ACCENT_SAT - 10)) $((ACCENT_LIT + 20 > 95 ? 95 : ACCENT_LIT + 20)))
+    OLD_DARKER=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $((ACCENT_LIT - 20 < 5 ? 5 : ACCENT_LIT - 20)))
+
+    # Re-source current config
+    source "$CONF"
+    NEW_PRIMARY=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $ACCENT_LIT)
+    NEW_DARK=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $((ACCENT_LIT - 10 < 5 ? 5 : ACCENT_LIT - 10)))
+    NEW_LIGHT=$(hsl2hex $ACCENT_HUE $((ACCENT_SAT - 10 < 0 ? 0 : ACCENT_SAT - 10)) $((ACCENT_LIT + 20 > 95 ? 95 : ACCENT_LIT + 20)))
+    NEW_DARKER=$(hsl2hex $ACCENT_HUE $ACCENT_SAT $((ACCENT_LIT - 20 < 5 ? 5 : ACCENT_LIT - 20)))
+
+    ICON_DIR="/usr/share/icons/BruceOS"
+    echo "  Replacing $OLD_PRIMARY -> $NEW_PRIMARY"
+    echo "  Replacing $OLD_DARK -> $NEW_DARK"
+    echo "  Replacing $OLD_LIGHT -> $NEW_LIGHT"
+    echo "  Replacing $OLD_DARKER -> $NEW_DARKER"
+
+    find "$ICON_DIR" -name "*.svg" -exec sed -i \
+        "s/${OLD_DARK}/${NEW_DARK}/gi; \
+         s/${OLD_LIGHT}/${NEW_LIGHT}/gi; \
+         s/${OLD_PRIMARY}/${NEW_PRIMARY}/gi; \
+         s/${OLD_DARKER}/${NEW_DARKER}/gi" {} +
+
+    gtk-update-icon-cache -f "$ICON_DIR" 2>/dev/null
+
+    # Save current config as baseline
+    cp "$CONF" "$ORIG"
+    echo "Icons recolored."
+fi
+
+# --- Init: save current colors as baseline ---
+if [[ "${1:-}" == "--init" ]]; then
+    cp "$CONF" "$ORIG"
+    echo "Saved current colors as baseline."
+fi
+
+# --- Reload shell theme ---
+dconf write /org/gnome/shell/extensions/user-theme/name "''" 2>/dev/null
+sleep 0.3
+dconf write /org/gnome/shell/extensions/user-theme/name "'BruceOS'" 2>/dev/null
+
+echo "Done. Log out/in for full effect."
