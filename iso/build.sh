@@ -72,6 +72,19 @@ curl -sL https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unk
     rm -rf /tmp/yazi /tmp/yazi.zip && \
     echo "yazi staged" || echo "WARN: yazi download failed"
 
+# Looking Glass B7 client (not in repos, build from source)
+echo "Building Looking Glass client..."
+LG_VER="B7"
+curl -sL "https://looking-glass.io/artifact/${LG_VER}/source" -o /tmp/lg-source.tar.gz && \
+    tar xf /tmp/lg-source.tar.gz -C /tmp/ && \
+    cd /tmp/looking-glass-${LG_VER}/client && \
+    mkdir -p build && cd build && \
+    cmake -DENABLE_WAYLAND=1 -DENABLE_X11=0 -DENABLE_PULSEAUDIO=0 -DENABLE_PIPEWIRE=1 .. 2>&1 | tail -3 && \
+    make -j$(nproc) 2>&1 | tail -3 && \
+    cp looking-glass-client "${STAGING}/" && \
+    cd /tmp && rm -rf /tmp/looking-glass-${LG_VER} /tmp/lg-source.tar.gz && \
+    echo "Looking Glass client built" || echo "WARN: Looking Glass build failed"
+
 echo "Staged files:"
 ls -la "${STAGING}/"
 

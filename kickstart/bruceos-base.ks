@@ -52,6 +52,7 @@ repo --name=copr-cachyos --baseurl=https://download.copr.fedorainfracloud.org/re
 repo --name=copr-starship --baseurl=https://download.copr.fedorainfracloud.org/results/atim/starship/fedora-43-x86_64/ --install --cost=100
 repo --name=copr-lazygit --baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazygit/fedora-43-x86_64/ --install --cost=100
 repo --name=copr-zellij --baseurl=https://download.copr.fedorainfracloud.org/results/varlad/zellij/fedora-43-x86_64/ --install --cost=100
+repo --name=copr-kvmfr --baseurl=https://download.copr.fedorainfracloud.org/results/hikariknight/looking-glass-kvmfr/fedora-43-x86_64/ --install --cost=100
 
 #--------------------------------------
 # Packages — everything installed here (anaconda has network)
@@ -127,13 +128,21 @@ akmod-nvidia
 xorg-x11-drv-nvidia
 xorg-x11-drv-nvidia-cuda
 
-# GPU passthrough / VFIO support
+# Virtualization + GPU passthrough (VFIO)
+@virtualization
 virt-manager
-libvirt
+libvirt-daemon-kvm
 qemu-kvm
-looking-glass-client
 virt-install
 edk2-ovmf
+dnsmasq
+
+# Looking Glass KVMFR kernel module (from COPR)
+akmod-kvmfr
+
+# WinApps dependencies (Windows app integration via RDP)
+freerdp
+dialog
 gstreamer1-plugins-bad-free
 gstreamer1-plugins-ugly
 gstreamer1-plugin-openh264
@@ -344,15 +353,122 @@ zram-size = ram / 2
 compression-algorithm = zstd
 ZRAMEOF
 
-#--- VFIO / GPU passthrough readiness ---
-# Load vfio modules at boot (user still needs to configure which GPU)
+#--- VFIO / GPU passthrough ---
+# Dracut: force-load VFIO modules into initramfs
+cat > /etc/dracut.conf.d/10-vfio.conf << 'DRACUTEOF'
+force_drivers+=" vfio vfio_iommu_type1 vfio_pci "
+DRACUTEOF
+
+# Modprobe: ensure vfio-pci loads before GPU drivers
+cat > /etc/modprobe.d/vfio.conf << 'MODEOF'
+softdep nvidia pre: vfio-pci
+softdep nouveau pre: vfio-pci
+softdep amdgpu pre: vfio-pci
+MODEOF
+
+# Modules to load at boot
 cat > /etc/modules-load.d/vfio.conf << 'VFIOEOF'
-vfio
+vfio-pci
 vfio_iommu_type1
-vfio_pci
 VFIOEOF
 
-# Enable libvirtd
+# Looking Glass shared memory (32MB default, covers 1080p)
+cat > /etc/tmpfiles.d/10-looking-glass.conf << 'LGEOF'
+f /dev/shm/looking-glass 0660 root kvm -
+LGEOF
+
+# Auto-detect CPU vendor and set IOMMU — applied at first boot or by bruce-setup
+cat > /usr/local/bin/bruce-vfio-setup << 'VFIOSETUPEOF'
+#!/bin/bash
+# BruceOS VFIO setup — auto-detect CPU and configure IOMMU
+set -euo pipefail
+
+CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}')
+
+if [ "$CPU_VENDOR" = "GenuineIntel" ]; then
+    IOMMU_PARAM="intel_iommu=on"
+elif [ "$CPU_VENDOR" = "AuthenticAMD" ]; then
+    IOMMU_PARAM="amd_iommu=on"
+else
+    echo "Unknown CPU vendor: $CPU_VENDOR"
+    exit 1
+fi
+
+VFIO_PARAMS="$IOMMU_PARAM iommu=pt rd.driver.pre=vfio-pci vfio_pci.disable_vga=1"
+
+echo "Detected: $CPU_VENDOR"
+echo "Applying kernel args: $VFIO_PARAMS"
+grubby --update-kernel=ALL --args="$VFIO_PARAMS"
+
+echo "Rebuilding initramfs..."
+dracut -f --kver "$(uname -r)"
+
+echo "VFIO configured. Reboot to apply."
+echo ""
+echo "Next steps:"
+echo "  1. Run 'bruce-vfio-list' to see IOMMU groups"
+echo "  2. Run 'bruce-vfio-bind <PCI_ID>' to bind a GPU to vfio-pci"
+VFIOSETUPEOF
+chmod +x /usr/local/bin/bruce-vfio-setup
+
+# IOMMU groups listing tool
+cat > /usr/local/bin/bruce-vfio-list << 'VFIOLISTEOF'
+#!/bin/bash
+# List IOMMU groups and their devices
+shopt -s nullglob
+for g in $(find /sys/kernel/iommu_groups/* -maxdepth 0 -type d 2>/dev/null | sort -V); do
+    echo "IOMMU Group ${g##*/}:"
+    for d in $g/devices/*; do
+        echo -e "\t$(lspci -nns ${d##*/})"
+    done
+done
+if [ ! -d /sys/kernel/iommu_groups/0 ]; then
+    echo "No IOMMU groups found. Run 'sudo bruce-vfio-setup' first and reboot."
+fi
+VFIOLISTEOF
+chmod +x /usr/local/bin/bruce-vfio-list
+
+# GPU bind tool
+cat > /usr/local/bin/bruce-vfio-bind << 'VFIOBINDEOF'
+#!/bin/bash
+# Bind a GPU to vfio-pci for passthrough
+# Usage: bruce-vfio-bind 10de:1234,10de:5678
+if [ -z "${1:-}" ]; then
+    echo "Usage: bruce-vfio-bind <vendor:device>[,vendor:device,...]"
+    echo "Example: bruce-vfio-bind 10de:2204,10de:1aef"
+    echo ""
+    echo "Find your GPU PCI IDs with: bruce-vfio-list"
+    exit 1
+fi
+
+echo "options vfio-pci ids=$1" >> /etc/modprobe.d/vfio.conf
+grubby --update-kernel=ALL --args="vfio-pci.ids=$1"
+dracut -f --kver "$(uname -r)"
+echo "GPU $1 will be bound to vfio-pci on next reboot."
+VFIOBINDEOF
+chmod +x /usr/local/bin/bruce-vfio-bind
+
+# Libvirt hooks for single-GPU passthrough
+mkdir -p /etc/libvirt/hooks/qemu.d
+cat > /etc/libvirt/hooks/qemu << 'HOOKEOF'
+#!/bin/bash
+GUEST_NAME="$1"
+HOOK_NAME="$2"
+STATE_NAME="$3"
+BASEDIR="$(dirname $0)"
+HOOKPATH="$BASEDIR/qemu.d/$GUEST_NAME/$HOOK_NAME/$STATE_NAME"
+set -e
+if [ -f "$HOOKPATH" ]; then
+    eval "\"$HOOKPATH\"" "$@"
+elif [ -d "$HOOKPATH" ]; then
+    while read file; do
+        eval "\"$file\"" "$@"
+    done <<< "$(find -L "$HOOKPATH" -maxdepth 1 -type f -executable -print;)"
+fi
+HOOKEOF
+chmod +x /etc/libvirt/hooks/qemu
+
+# Enable libvirtd + default network
 systemctl enable libvirtd || true
 
 #--- Plymouth ---
@@ -516,8 +632,13 @@ if ls ${STAGING}/ghostty-*.rpm 1>/dev/null 2>&1; then
         echo "Ghostty installed" || echo "WARN: Ghostty rpm install failed"
 fi
 
-# eza + yazi binaries
+# eza + yazi + looking-glass-client binaries
 mkdir -p "${SYSROOT}/usr/local/bin"
+if [ -f "${STAGING}/looking-glass-client" ]; then
+    cp "${STAGING}/looking-glass-client" "${SYSROOT}/usr/local/bin/looking-glass-client"
+    chmod +x "${SYSROOT}/usr/local/bin/looking-glass-client"
+    echo "Looking Glass client installed"
+fi
 for bin in eza yazi; do
     if [ -f "${STAGING}/${bin}" ]; then
         cp "${STAGING}/${bin}" "${SYSROOT}/usr/local/bin/${bin}"
