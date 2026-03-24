@@ -82,6 +82,7 @@ gnome-system-monitor
 gnome-shell-extension-dash-to-panel
 gnome-shell-extension-appindicator
 gnome-shell-extension-user-theme
+glib2-devel
 
 # VM clipboard support
 spice-vdagent
@@ -301,6 +302,12 @@ GHOSTTYEOF
 mkdir -p /etc/fish/conf.d
 cat > /etc/fish/conf.d/bruce.fish << 'FISHEOF'
 # BruceOS default Fish configuration
+set -g fish_greeting ''
+
+function fish_title
+    pwd
+end
+
 starship init fish | source
 atuin init fish | source
 zoxide init fish | source
@@ -747,7 +754,6 @@ mkdir -p "${JP_DIR}" && \
 ARC_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com"
 cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null && \
     cd ArcMenu && \
-    dnf5 install -y glib2-devel 2>/dev/null && \
     make build 2>/dev/null && \
     mkdir -p "${ARC_DIR}" && \
     cp -r _build/* "${ARC_DIR}/" 2>/dev/null || cp -r * "${ARC_DIR}/" && \
@@ -846,8 +852,8 @@ name='BruceOS'
 
 [org/gnome/shell/extensions/just-perfection]
 activities-button=true
-clock-menu-position=1
-clock-menu-position-offset=0
+clock-menu-position=0
+clock-menu-position-offset=20
 power-icon=true
 accessibility-menu=false
 
@@ -879,7 +885,7 @@ accent-color='green'
 icon-theme='BruceOS'
 
 [org/gnome/login-screen]
-logo='/usr/share/pixmaps/bruceos-logo.svg'
+logo='/usr/share/pixmaps/bruceos-logo.png'
 GDMEOF
 
 # GDM accent color override
@@ -896,6 +902,13 @@ chroot "${SYSROOT}" dconf update || true
 
 # Flatpak dark mode
 chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null || true
+
+#--- BruceOS theme system ---
+mkdir -p "${SYSROOT}/etc/bruceos"
+cp /build/config/bruceos-theme.conf "${SYSROOT}/etc/bruceos/theme.conf"
+cp "${SYSROOT}/etc/bruceos/theme.conf" "${SYSROOT}/etc/bruceos/theme.original"
+cp /build/config/bruceos-theme-apply "${SYSROOT}/usr/local/bin/bruceos-theme-apply"
+chmod +x "${SYSROOT}/usr/local/bin/bruceos-theme-apply"
 
 #--- BruceOS emerald accent color overrides ---
 # GTK4
@@ -922,8 +935,14 @@ cp "${SYSROOT}/etc/gtk-4.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-4.0/gtk.css
 mkdir -p "${SYSROOT}/etc/skel/.config/gtk-3.0"
 cp "${SYSROOT}/etc/gtk-3.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-3.0/gtk.css"
 
-# Default user avatar (BruceOS logo)
-cp "${SYSROOT}/usr/share/pixmaps/bruceos-logo.png" "${SYSROOT}/etc/skel/.face"
+# Chrome/Chromium dark mode flags
+mkdir -p "${SYSROOT}/etc/skel/.var/app/io.github.ungoogled_software.ungoogled_chromium/config"
+cat > "${SYSROOT}/etc/skel/.var/app/io.github.ungoogled_software.ungoogled_chromium/config/chromium-flags.conf" << 'CHROMEEOF'
+--force-dark-mode
+--enable-features=WebUIDarkMode
+--gtk-version=4
+--use-system-title-bar
+CHROMEEOF
 
 # GNOME Shell theme
 mkdir -p "${SYSROOT}/usr/share/themes/BruceOS/gnome-shell"
