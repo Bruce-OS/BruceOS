@@ -82,7 +82,6 @@ gnome-system-monitor
 gnome-shell-extension-dash-to-panel
 gnome-shell-extension-appindicator
 gnome-shell-extension-user-theme
-glib2-devel
 
 # VM clipboard support
 spice-vdagent
