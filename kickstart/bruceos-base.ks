@@ -81,6 +81,7 @@ gnome-system-monitor
 # GNOME extensions
 gnome-shell-extension-dash-to-dock
 gnome-shell-extension-appindicator
+gnome-shell-extension-user-theme
 
 # VM clipboard support
 spice-vdagent
@@ -263,7 +264,33 @@ mkdir -p /etc/ghostty
 cat > /etc/ghostty/config << 'GHOSTTYEOF'
 font-family = JetBrains Mono
 font-size = 13
-theme = catppuccin-mocha
+background = #1d1d20
+foreground = #f5f5f5
+cursor-color = #10b981
+cursor-style = block
+selection-background = #059669
+selection-foreground = #ffffff
+window-padding-x = 12
+window-padding-y = 8
+palette = 0=#1a1a1a
+palette = 1=#ef4444
+palette = 2=#10b981
+palette = 3=#f59e0b
+palette = 4=#3b82f6
+palette = 5=#8b5cf6
+palette = 6=#06b6d4
+palette = 7=#d4d4d4
+palette = 8=#525252
+palette = 9=#f87171
+palette = 10=#34d399
+palette = 11=#fbbf24
+palette = 12=#60a5fa
+palette = 13=#a78bfa
+palette = 14=#22d3ee
+palette = 15=#f5f5f5
+gtk-titlebar = true
+window-decoration = true
+gtk-adwaita = true
 shell-integration = fish
 gtk-single-instance = true
 quit-after-last-window-closed = false
@@ -678,20 +705,100 @@ fi
 
 #--- Ghostty icon — use standard terminal icon ---
 if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; then
-    sed -i 's|^Icon=.*|Icon=utilities-terminal-symbolic|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
+    sed -i 's|^Icon=.*|Icon=org.gnome.Terminal|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
 fi
+
+#--- MoreWaita icons (fills gaps for 1400+ apps) ---
+curl -sL https://github.com/somepaulo/MoreWaita/archive/refs/heads/main.tar.gz -o /tmp/morewaita.tar.gz && \
+    tar xf /tmp/morewaita.tar.gz -C /tmp/ && \
+    mkdir -p "${SYSROOT}/usr/share/icons/MoreWaita" && \
+    cp /tmp/MoreWaita-main/index.theme "${SYSROOT}/usr/share/icons/MoreWaita/" && \
+    cp -r /tmp/MoreWaita-main/scalable "${SYSROOT}/usr/share/icons/MoreWaita/" && \
+    cp -r /tmp/MoreWaita-main/symbolic "${SYSROOT}/usr/share/icons/MoreWaita/" && \
+    rm -rf /tmp/MoreWaita-main /tmp/morewaita.tar.gz || true
+# Add MoreWaita to BruceOS inheritance chain
+sed -i 's|^Inherits=Adwaita|Inherits=MoreWaita,Adwaita|' "${SYSROOT}/usr/share/icons/BruceOS/index.theme"
+
+#--- Just Perfection extension (not in Fedora repos) ---
+JP_URL="https://extensions.gnome.org/extension-data/just-perfection-desktopjust-perfection.v30.shell-extension.zip"
+JP_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection"
+mkdir -p "${JP_DIR}" && \
+    curl -sL "${JP_URL}" -o /tmp/jp.zip && \
+    unzip -o /tmp/jp.zip -d "${JP_DIR}/" && \
+    rm -f /tmp/jp.zip && \
+    sed -i 's/"47"/"47","48","49"/' "${JP_DIR}/metadata.json" && \
+    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection/schemas/ 2>/dev/null && \
+    chmod -R a+rX "${JP_DIR}" && \
+    echo "Just Perfection installed" || echo "WARN: Just Perfection install failed"
+
+#--- BruceOS logo extension (replaces Activities with B logo) ---
+LOGO_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/bruceos-logo@bruceos.com"
+mkdir -p "${LOGO_DIR}"
+cat > "${LOGO_DIR}/metadata.json" << 'EXTMETA'
+{
+  "uuid": "bruceos-logo@bruceos.com",
+  "name": "BruceOS Logo",
+  "description": "Replaces Activities button with BruceOS logo",
+  "shell-version": ["47", "48", "49"],
+  "version": 1
+}
+EXTMETA
+cat > "${LOGO_DIR}/extension.js" << 'EXTJS'
+import St from "gi://St";
+import Clutter from "gi://Clutter";
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
+import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
+import {Extension} from "resource:///org/gnome/shell/extensions/extension.js";
+
+export default class BruceOSLogoExtension extends Extension {
+    enable() {
+        let activities = Main.panel.statusArea.activities;
+        if (activities) {
+            activities.hide();
+            this._activities = activities;
+        }
+
+        this._button = new PanelMenu.Button(0.0, 'BruceOS', false);
+        let label = new St.Label({
+            text: ' B ',
+            y_align: Clutter.ActorAlign.CENTER,
+            style: 'font-weight: bold; font-size: 14px; background-color: #059669; color: white; border-radius: 6px; padding: 1px 4px;',
+        });
+        this._button.add_child(label);
+        this._button.connect('button-press-event', () => {
+            Main.overview.toggle();
+            return Clutter.EVENT_STOP;
+        });
+
+        let leftBox = Main.panel._leftBox;
+        leftBox.insert_child_at_index(this._button, 0);
+    }
+
+    disable() {
+        if (this._button) {
+            this._button.destroy();
+            this._button = null;
+        }
+        if (this._activities) {
+            this._activities.show();
+        }
+    }
+}
+EXTJS
+chmod -R a+rX "${LOGO_DIR}"
 
 #--- GNOME dconf defaults ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cat > "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
 [org/gnome/desktop/interface]
-gtk-theme='Adwaita-dark'
+gtk-theme='Adwaita'
 icon-theme='BruceOS'
 cursor-theme='Adwaita'
 font-name='Noto Sans 11'
 document-font-name='Noto Sans 11'
 monospace-font-name='JetBrains Mono 13'
 color-scheme='prefer-dark'
+accent-color='green'
 
 [org/gnome/desktop/wm/preferences]
 titlebar-font='Noto Sans Bold 11'
@@ -707,24 +814,44 @@ picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
 favorite-apps=['install-bruceos.desktop']
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'just-perfection-desktop@just-perfection', 'bruceos-logo@bruceos.com']
 
 
 [org/gnome/shell/extensions/dash-to-dock]
-dash-max-icon-size=48
-dock-position='BOTTOM'
-dock-fixed=true
-extend-height=false
-transparency-mode='DYNAMIC'
+apply-custom-theme=false
 background-opacity=0.6
-custom-theme-shrink=true
-show-trash=false
-show-mounts=false
+custom-background-color=false
+custom-theme-shrink=false
+dash-max-icon-size=48
+disable-overview-on-startup=true
+dock-fixed=false
+dock-position='BOTTOM'
+extend-height=false
+height-fraction=0.9
+isolate-monitors=true
+isolate-workspaces=true
+multi-monitor=true
+preferred-monitor=-2
+preview-size-scale=0.0
+running-indicator-style='DASHES'
+show-apps-always-in-the-edge=true
+show-apps-at-top=true
+show-mounts=true
+show-mounts-network=false
+show-running=true
 show-show-apps-button=false
-show-running=false
+show-trash=false
+transparency-mode='DYNAMIC'
 
 [org/gnome/shell/extensions/user-theme]
-name='Adwaita-dark'
+name='BruceOS'
+
+[org/gnome/shell/extensions/just-perfection]
+activities-button=true
+clock-menu-position=1
+clock-menu-position-offset=0
+power-icon=true
+accessibility-menu=false
 
 [org/gnome/software]
 allow-updates=false
@@ -741,11 +868,93 @@ cat > "${SYSROOT}/etc/dconf/db/local.d/locks/01-bruceos" << 'LOCKEOF'
 /org/gnome/desktop/interface/gtk-theme
 LOCKEOF
 
+# GDM login screen config
+mkdir -p "${SYSROOT}/etc/dconf/db/gdm.d"
+cat > "${SYSROOT}/etc/dconf/db/gdm.d/01-bruceos" << 'GDMEOF'
+[org/gnome/desktop/interface]
+gtk-theme='Adwaita'
+color-scheme='prefer-dark'
+accent-color='green'
+icon-theme='BruceOS'
+
+[org/gnome/login-screen]
+logo='/usr/share/pixmaps/bruceos-logo.svg'
+GDMEOF
+
+# GDM accent color override
+mkdir -p "${SYSROOT}/var/lib/gdm/.config/gtk-4.0"
+cat > "${SYSROOT}/var/lib/gdm/.config/gtk-4.0/gtk.css" << 'GDMCSS'
+@define-color accent_color #10b981;
+@define-color accent_bg_color #059669;
+@define-color accent_fg_color #ffffff;
+GDMCSS
+chroot "${SYSROOT}" chown -R gdm:gdm /var/lib/gdm/.config 2>/dev/null || true
+
 # Compile dconf
 chroot "${SYSROOT}" dconf update || true
 
 # Flatpak dark mode
 chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null || true
+
+#--- BruceOS emerald accent color overrides ---
+# GTK4
+mkdir -p "${SYSROOT}/etc/gtk-4.0"
+cat > "${SYSROOT}/etc/gtk-4.0/gtk.css" << 'ACCENTEOF'
+@define-color accent_color #10b981;
+@define-color accent_bg_color #059669;
+@define-color accent_fg_color #ffffff;
+ACCENTEOF
+
+# GTK3
+mkdir -p "${SYSROOT}/etc/gtk-3.0"
+cat > "${SYSROOT}/etc/gtk-3.0/gtk.css" << 'ACCENTEOF'
+@define-color accent_color #10b981;
+@define-color accent_bg_color #059669;
+@define-color accent_fg_color #ffffff;
+@define-color theme_selected_bg_color #059669;
+@define-color theme_selected_fg_color #ffffff;
+ACCENTEOF
+
+# Deploy GTK4 accent override to /etc/skel so all new users get it
+mkdir -p "${SYSROOT}/etc/skel/.config/gtk-4.0"
+cp "${SYSROOT}/etc/gtk-4.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-4.0/gtk.css"
+mkdir -p "${SYSROOT}/etc/skel/.config/gtk-3.0"
+cp "${SYSROOT}/etc/gtk-3.0/gtk.css" "${SYSROOT}/etc/skel/.config/gtk-3.0/gtk.css"
+
+# GNOME Shell theme
+mkdir -p "${SYSROOT}/usr/share/themes/BruceOS/gnome-shell"
+cat > "${SYSROOT}/usr/share/themes/BruceOS/gnome-shell/gnome-shell.css" << 'SHELLEOF'
+@import url("resource:///org/gnome/shell/theme/gnome-shell.css");
+
+#panel {
+    background-color: #242424;
+    height: 32px;
+    font-weight: 400;
+    font-size: 12px;
+}
+
+#panel .panel-button {
+    font-weight: 400;
+    -natural-hpadding: 8px;
+}
+
+#panel .system-status-icon {
+    icon-size: 15px;
+}
+
+.quick-toggle:checked {
+    background-color: #059669;
+}
+
+.quick-toggle:checked:hover {
+    background-color: #10b981;
+}
+
+.calendar .calendar-day.calendar-today {
+    background-color: #059669;
+    color: white;
+}
+SHELLEOF
 
 #--- Calamares installer branding + config ---
 echo "=== Configuring Calamares installer ==="

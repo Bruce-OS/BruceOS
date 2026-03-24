@@ -2,7 +2,7 @@
 Name=BruceOS
 Comment=BruceOS icon theme — Adwaita with emerald green accents
 Example=folder
-Inherits=Adwaita,Adwaita-blue,AdwaitaLegacy,hicolor
+Inherits=MoreWaita,Adwaita,Adwaita-blue,AdwaitaLegacy,hicolor
 Hidden=true
 
 # KDE Specific Stuff
