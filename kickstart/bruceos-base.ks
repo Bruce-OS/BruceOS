@@ -732,6 +732,13 @@ show-running=false
 
 [org/gnome/shell/extensions/user-theme]
 name='Adwaita-dark'
+
+[org/gnome/software]
+allow-updates=false
+download-updates=false
+download-updates-notify=false
+first-run=false
+show-nags=false
 DCONFEOF
 
 # Lock dark mode
