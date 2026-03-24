@@ -676,12 +676,9 @@ if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; 
     cp "$LOGO" "${SYSROOT}/usr/share/pixmaps/fedora-logo-sprite.svg" 2>/dev/null || true
 fi
 
-#--- Custom Ghostty icon ---
-if [ -f /build/theme/branding/ghostty.png ]; then
-    cp /build/theme/branding/ghostty.png "${SYSROOT}/usr/share/pixmaps/ghostty.png"
-    if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; then
-        sed -i 's|^Icon=.*|Icon=/usr/share/pixmaps/ghostty.png|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
-    fi
+#--- Ghostty icon — use standard terminal icon ---
+if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; then
+    sed -i 's|^Icon=.*|Icon=utilities-terminal-symbolic|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
 fi
 
 #--- GNOME dconf defaults ---
