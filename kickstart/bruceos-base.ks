@@ -543,20 +543,16 @@ flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.f
 echo "Installing Ungoogled Chromium..."
 flatpak install -y --noninteractive flathub io.github.ungoogled_software.ungoogled_chromium || true
 
-# Create a friendly "Chrome" desktop entry pointing to Ungoogled Chromium
+# Create "Chrome" desktop entry with correct WMClass to prevent dock doubling
 if flatpak info io.github.ungoogled_software.ungoogled_chromium &>/dev/null; then
-    cat > /usr/share/applications/chrome.desktop << 'CHROMEEOF'
-[Desktop Entry]
-Name=Chrome
-Comment=Browse the web (Ungoogled Chromium)
-Exec=flatpak run io.github.ungoogled_software.ungoogled_chromium %U
-Icon=io.github.ungoogled_software.ungoogled_chromium
-Terminal=false
-Type=Application
-Categories=Network;WebBrowser;
-MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
-CHROMEEOF
-    echo "Chrome desktop entry created"
+    # Copy the flatpak desktop file (has correct Exec with --file-forwarding)
+    cp /var/lib/flatpak/exports/share/applications/io.github.ungoogled_software.ungoogled_chromium.desktop \
+       /usr/share/applications/chrome.desktop
+    # Rename to "Chrome" and ensure StartupWMClass matches
+    sed -i '0,/^Name=/{s/^Name=.*/Name=Chrome/}' /usr/share/applications/chrome.desktop
+    grep -q "^StartupWMClass=" /usr/share/applications/chrome.desktop || \
+        echo "StartupWMClass=chromium-browser" >> /usr/share/applications/chrome.desktop
+    echo "Chrome desktop entry created (with WMClass)"
 fi
 
 # --- DING (Desktop Icons NG) ---
