@@ -698,7 +698,7 @@ color-scheme='prefer-dark'
 
 [org/gnome/desktop/wm/preferences]
 titlebar-font='Noto Sans Bold 11'
-button-layout='close,minimize,maximize:'
+button-layout=':minimize,maximize,close'
 
 [org/gnome/desktop/background]
 picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
