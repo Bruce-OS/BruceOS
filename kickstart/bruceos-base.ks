@@ -79,7 +79,7 @@ gnome-system-monitor
 -gnome-initial-setup
 
 # GNOME extensions
-gnome-shell-extension-dash-to-dock
+gnome-shell-extension-dash-to-panel
 gnome-shell-extension-appindicator
 gnome-shell-extension-user-theme
 
@@ -336,8 +336,10 @@ $git_status\
 $character"""
 
 [directory]
-truncation_length = 3
-truncation_symbol = ".../"
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = '/home'
+use_os_path_sep = true
 
 [git_branch]
 symbol = " "
@@ -741,61 +743,20 @@ mkdir -p "${JP_DIR}" && \
     chmod -R a+rX "${JP_DIR}" && \
     echo "Just Perfection installed" || echo "WARN: Just Perfection install failed"
 
-#--- BruceOS logo extension (replaces Activities with B logo) ---
-LOGO_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/bruceos-logo@bruceos.com"
-mkdir -p "${LOGO_DIR}"
-cat > "${LOGO_DIR}/metadata.json" << 'EXTMETA'
-{
-  "uuid": "bruceos-logo@bruceos.com",
-  "name": "BruceOS Logo",
-  "description": "Replaces Activities button with BruceOS logo",
-  "shell-version": ["47", "48", "49"],
-  "version": 1
-}
-EXTMETA
-cat > "${LOGO_DIR}/extension.js" << 'EXTJS'
-import St from "gi://St";
-import Clutter from "gi://Clutter";
-import * as Main from "resource:///org/gnome/shell/ui/main.js";
-import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
-import {Extension} from "resource:///org/gnome/shell/extensions/extension.js";
-
-export default class BruceOSLogoExtension extends Extension {
-    enable() {
-        let activities = Main.panel.statusArea.activities;
-        if (activities) {
-            activities.hide();
-            this._activities = activities;
-        }
-
-        this._button = new PanelMenu.Button(0.0, 'BruceOS', false);
-        let label = new St.Label({
-            text: ' B ',
-            y_align: Clutter.ActorAlign.CENTER,
-            style: 'font-weight: bold; font-size: 14px; background-color: #059669; color: white; border-radius: 6px; padding: 1px 4px;',
-        });
-        this._button.add_child(label);
-        this._button.connect('button-press-event', () => {
-            Main.overview.toggle();
-            return Clutter.EVENT_STOP;
-        });
-
-        let leftBox = Main.panel._leftBox;
-        leftBox.insert_child_at_index(this._button, 0);
-    }
-
-    disable() {
-        if (this._button) {
-            this._button.destroy();
-            this._button = null;
-        }
-        if (this._activities) {
-            this._activities.show();
-        }
-    }
-}
-EXTJS
-chmod -R a+rX "${LOGO_DIR}"
+#--- Arc Menu extension (not in Fedora repos, build from git) ---
+ARC_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com"
+cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null && \
+    cd ArcMenu && \
+    dnf5 install -y glib2-devel 2>/dev/null && \
+    make build 2>/dev/null && \
+    mkdir -p "${ARC_DIR}" && \
+    cp -r _build/* "${ARC_DIR}/" 2>/dev/null || cp -r * "${ARC_DIR}/" && \
+    mkdir -p "${ARC_DIR}/schemas" && \
+    cp schemas/*.xml "${ARC_DIR}/schemas/" 2>/dev/null && \
+    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/schemas/ 2>/dev/null && \
+    chmod -R a+rX "${ARC_DIR}" && \
+    echo "Arc Menu installed" || echo "WARN: Arc Menu install failed"
+rm -rf /tmp/ArcMenu
 
 #--- GNOME dconf defaults ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
@@ -824,34 +785,61 @@ picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
 
 [org/gnome/shell]
 favorite-apps=['install-bruceos.desktop']
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'just-perfection-desktop@just-perfection', 'bruceos-logo@bruceos.com']
+enabled-extensions=['dash-to-panel@jderose9.github.com', 'appindicatorsupport@rgcjonas.gmail.com', 'ding@rastersoft.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'just-perfection-desktop@just-perfection', 'arcmenu@arcmenu.com']
 
 
-[org/gnome/shell/extensions/dash-to-dock]
-apply-custom-theme=false
-background-opacity=0.6
-custom-background-color=false
-custom-theme-shrink=false
-dash-max-icon-size=48
-disable-overview-on-startup=true
-dock-fixed=false
-dock-position='BOTTOM'
-extend-height=false
-height-fraction=0.9
-isolate-monitors=true
+[org/gnome/shell/extensions/dash-to-panel]
+animate-appicon-hover=true
+appicon-margin=8
+appicon-padding=0
+dot-position='BOTTOM'
+dot-size=2
+dot-style-focused='DASHES'
+dot-style-unfocused='DASHES'
+focus-highlight-dominant=true
+global-border-radius=3
+hotkeys-overlay-combo='TEMPORARILY'
 isolate-workspaces=true
-multi-monitor=true
-preferred-monitor=-2
-preview-size-scale=0.0
-running-indicator-style='DASHES'
-show-apps-always-in-the-edge=true
-show-apps-at-top=true
-show-mounts=true
-show-mounts-network=false
-show-running=true
-show-show-apps-button=false
-show-trash=false
-transparency-mode='DYNAMIC'
+panel-positions='{}'
+panel-sizes='{}'
+panel-side-margins=32
+panel-side-padding=32
+panel-top-bottom-margins=32
+panel-top-bottom-padding=12
+show-favorites=true
+show-running-apps=true
+stockgs-force-hotcorner=false
+stockgs-keep-dash=false
+stockgs-keep-top-panel=false
+trans-use-custom-bg=true
+trans-bg-color='#242424'
+trans-use-custom-opacity=true
+trans-panel-opacity=1.0
+
+[org/gnome/shell/extensions/arcmenu]
+menu-layout='Chromebook'
+menu-button-appearance='Icon'
+menu-button-icon='Custom'
+custom-menu-button-icon='/usr/share/icons/Adwaita/symbolic/actions/open-menu-symbolic.svg'
+custom-menu-button-icon-size=52
+menu-button-icon-size=52
+menu-button-padding=12
+position-in-panel='Left'
+menu-arrow-rise=20
+menu-background-color='rgba(36, 36, 36, 1)'
+menu-foreground-color='rgba(245, 245, 245, 1)'
+menu-border-color='rgba(42, 42, 42, 1)'
+menu-separator-color='rgba(42, 42, 42, 1)'
+menu-border-radius=12
+menu-border-width=0
+override-menu-theme=true
+searchbar-default-bottom-location=true
+search-entry-border-radius=(true, 25)
+show-activities-button=false
+hide-overview-on-startup=true
+hide-overview-on-arcmenu-open=true
+dash-to-panel-standalone=false
+update-notifier-project-version=999
 
 [org/gnome/shell/extensions/user-theme]
 name='BruceOS'
@@ -869,6 +857,9 @@ download-updates=false
 download-updates-notify=false
 first-run=false
 show-nags=false
+
+[org/gnome/desktop/notifications]
+show-banners=false
 DCONFEOF
 
 # Lock dark mode
