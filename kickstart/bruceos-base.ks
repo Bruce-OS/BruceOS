@@ -118,9 +118,14 @@ btop
 fastfetch
 # eza and yazi: not in any repo, downloaded as binaries in build.sh
 
-# RPM Fusion codecs (from repos above)
+# RPM Fusion (from repos above)
 rpmfusion-free-release
 rpmfusion-nonfree-release
+
+# NVIDIA drivers (installed for everyone, only loads on NVIDIA hardware)
+akmod-nvidia
+xorg-x11-drv-nvidia
+xorg-x11-drv-nvidia-cuda
 gstreamer1-plugins-bad-free
 gstreamer1-plugins-ugly
 gstreamer1-plugin-openh264
