@@ -126,6 +126,14 @@ rpmfusion-nonfree-release
 akmod-nvidia
 xorg-x11-drv-nvidia
 xorg-x11-drv-nvidia-cuda
+
+# GPU passthrough / VFIO support
+virt-manager
+libvirt
+qemu-kvm
+looking-glass-client
+virt-install
+edk2-ovmf
 gstreamer1-plugins-bad-free
 gstreamer1-plugins-ugly
 gstreamer1-plugin-openh264
@@ -335,6 +343,17 @@ cat > /etc/systemd/zram-generator.conf << 'ZRAMEOF'
 zram-size = ram / 2
 compression-algorithm = zstd
 ZRAMEOF
+
+#--- VFIO / GPU passthrough readiness ---
+# Load vfio modules at boot (user still needs to configure which GPU)
+cat > /etc/modules-load.d/vfio.conf << 'VFIOEOF'
+vfio
+vfio_iommu_type1
+vfio_pci
+VFIOEOF
+
+# Enable libvirtd
+systemctl enable libvirtd || true
 
 #--- Plymouth ---
 plymouth-set-default-theme spinner || true
