@@ -779,18 +779,21 @@ document-font-name='Red Hat Text 11'
 monospace-font-name='JetBrains Mono 13'
 color-scheme='prefer-dark'
 accent-color='green'
+clock-format='12h'
+clock-show-date=true
+clock-show-weekday=true
 
 [org/gnome/desktop/wm/preferences]
 titlebar-font='Red Hat Display Bold 11'
 button-layout=':minimize,maximize,close'
 
 [org/gnome/desktop/background]
-picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
-picture-uri-dark='file:///usr/share/backgrounds/bruceos/wallpaper.png'
+picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.svg'
+picture-uri-dark='file:///usr/share/backgrounds/bruceos/wallpaper.svg'
 picture-options='zoom'
 
 [org/gnome/desktop/screensaver]
-picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.png'
+picture-uri='file:///usr/share/backgrounds/bruceos/wallpaper.svg'
 
 [org/gnome/shell]
 favorite-apps=['install-bruceos.desktop']
@@ -833,10 +836,14 @@ progress-show-count=true
 scroll-icon-action='NOTHING'
 scroll-panel-action='NOTHING'
 secondarymenu-contains-appmenu=true
-secondarymenu-contains-showdetails=false
+secondarymenu-contains-showdetails=true
 show-apps-icon-file='/usr/share/icons/BruceOS/scalable/apps/deepin-toggle-desktop.svg'
 show-favorites=true
 show-favorites-all-monitors=false
+show-tooltip=false
+middle-click-action='LAUNCH'
+shift-click-action='MINIMIZE'
+shift-middle-click-action='LAUNCH'
 status-icon-padding=-1
 stockgs-force-hotcorner=false
 stockgs-keep-dash=false
@@ -927,6 +934,13 @@ show-nags=false
 
 [org/gnome/desktop/notifications]
 show-banners=false
+show-in-lock-screen=false
+
+[org/gnome/shell/extensions/ding]
+icon-size='small'
+show-drop-place=false
+show-network-volumes=true
+dark-text-in-labels=false
 DCONFEOF
 
 # Lock dark mode
