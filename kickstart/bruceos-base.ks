@@ -709,6 +709,10 @@ if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; 
     rsvg-convert -w 128 -h 128 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/system-logo-white.png" 2>/dev/null || true
     rsvg-convert -w 128 -h 128 "$LOGO" -o "${SYSROOT}/usr/share/pixmaps/bruceos-logo.png" 2>/dev/null || true
     cp "$LOGO" "${SYSROOT}/usr/share/pixmaps/fedora-logo-sprite.svg" 2>/dev/null || true
+    # GNOME Settings About page reads LOGO= from os-release and looks for icon by that name
+    mkdir -p "${SYSROOT}/usr/share/icons/hicolor/scalable/apps"
+    cp "$LOGO" "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg"
+    cp "$LOGO" "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
 fi
 
 #--- Ghostty icon — use standard terminal icon ---
