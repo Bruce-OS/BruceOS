@@ -687,16 +687,25 @@ if [ -d /build/theme/icons-bruceos ]; then
     echo "BruceOS icon theme installed"
 fi
 
-#--- BruceOS wallpaper ---
-if [ -f /build/theme/wallpaper.png ]; then
-    mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
-    cp /build/theme/wallpaper.png "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.png"
-elif [ -f /build/theme/wallpaper.svg ]; then
-    # Generate from SVG if rsvg-convert available
-    if command -v rsvg-convert &>/dev/null; then
-        mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
-        rsvg-convert -w 3840 -h 2160 /build/theme/wallpaper.svg -o "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.png"
-    fi
+#--- BruceOS wallpaper (generated SVG with branding) ---
+mkdir -p "${SYSROOT}/usr/share/backgrounds/bruceos"
+BRUCEOS_VER=$(grep '^VERSION=' "${SYSROOT}/etc/os-release" 2>/dev/null | tr -d '"' | cut -d= -f2)
+BRUCEOS_VER="${BRUCEOS_VER:-1.0}"
+cat > "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.svg" << WPEOF
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <rect width="3840" height="2160" fill="#0a0a0a"/>
+  <g transform="translate(1920, 1080)">
+    <text x="0" y="0" font-family="Red Hat Display, sans-serif" text-anchor="middle" dominant-baseline="alphabetic" opacity="0.3">
+      <tspan font-weight="700" font-size="280" fill="#0b0e0c">OS</tspan><tspan font-weight="300" font-size="50" fill="#059669">b</tspan>
+    </text>
+    <text x="0" y="60" font-family="Red Hat Text, sans-serif" font-weight="300" font-size="36" fill="#4a4a4a" text-anchor="middle" opacity="0.6">v${BRUCEOS_VER}</text>
+  </g>
+</svg>
+WPEOF
+# Also keep a PNG fallback for screensaver
+if command -v rsvg-convert &>/dev/null; then
+    rsvg-convert -w 3840 -h 2160 "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.svg" \
+        -o "${SYSROOT}/usr/share/backgrounds/bruceos/wallpaper.png" 2>/dev/null || true
 fi
 
 #--- White-label: replace Fedora logos with BruceOS ---
@@ -1079,6 +1088,8 @@ mkdir -p "${BRANDING_DEST}"
 cp /build/installer/branding/bruceos/branding.desc "${BRANDING_DEST}/"
 cp /build/installer/branding/bruceos/show.qml "${BRANDING_DEST}/"
 cp /build/installer/branding/bruceos/stylesheet.qss "${BRANDING_DEST}/"
+cp /build/installer/branding/bruceos/calamares-sidebar.qml "${BRANDING_DEST}/" 2>/dev/null || true
+cp /build/installer/branding/bruceos/calamares-navigation.qml "${BRANDING_DEST}/" 2>/dev/null || true
 
 # Copy logo into branding directory
 if [ -f /build/theme/bruceos-logo.svg ]; then
