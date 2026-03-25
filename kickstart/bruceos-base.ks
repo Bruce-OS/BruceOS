@@ -724,6 +724,16 @@ if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; 
     cp "$LOGO" "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
 fi
 
+#--- Custom icon overrides (map existing icons to app desktop IDs) ---
+BICONS="${SYSROOT}/usr/share/icons/BruceOS/scalable/apps"
+if [ -d "$BICONS" ]; then
+    cp "$BICONS/com.leinardi.gwe.svg" "$BICONS/nvidia-settings.svg" 2>/dev/null || true
+    cp "$BICONS/SysMonTask.svg" "$BICONS/org.gnome.SystemMonitor.svg" 2>/dev/null || true
+    cp "$BICONS/SysMonTask.svg" "$BICONS/btop.svg" 2>/dev/null || true
+    cp "$BICONS/com.github.alcadica.develop.svg" "$BICONS/org.gnome.Settings.svg" 2>/dev/null || true
+    cp "$BICONS/org.gnome.gedit.svg" "$BICONS/org.gnome.TextEditor.svg" 2>/dev/null || true
+fi
+
 #--- Ghostty icon — use standard terminal icon ---
 if [ -f "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop" ]; then
     sed -i 's|^Icon=.*|Icon=org.gnome.Terminal|' "${SYSROOT}/usr/share/applications/com.mitchellh.ghostty.desktop"
@@ -750,8 +760,18 @@ curl -sL https://github.com/somepaulo/MoreWaita/archive/refs/heads/main.tar.gz -
 # Add MoreWaita to BruceOS inheritance chain
 sed -i 's|^Inherits=Adwaita|Inherits=MoreWaita,Adwaita|' "${SYSROOT}/usr/share/icons/BruceOS/index.theme"
 
+#--- DING (Desktop Icons NG) — install in build so it works on live ISO ---
+DING_UUID="ding@rastersoft.com"
+DING_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/${DING_UUID}"
+curl -sfL "https://extensions.gnome.org/download-extension/${DING_UUID}.shell-extension.zip?shell_version=49" -o /tmp/ding.zip && \
+    mkdir -p "${DING_DIR}" && \
+    unzip -qo /tmp/ding.zip -d "${DING_DIR}" && \
+    rm -f /tmp/ding.zip && \
+    chmod -R a+rX "${DING_DIR}" && \
+    echo "DING installed" || echo "WARN: DING install failed"
+
 #--- Just Perfection extension (not in Fedora repos) ---
-JP_URL="https://extensions.gnome.org/extension-data/just-perfection-desktopjust-perfection.v30.shell-extension.zip"
+JP_URL="https://extensions.gnome.org/extension-data/just-perfection-desktop%40just-perfection.v30.shell-extension.zip"
 JP_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection"
 mkdir -p "${JP_DIR}" && \
     curl -sL "${JP_URL}" -o /tmp/jp.zip && \
@@ -764,16 +784,28 @@ mkdir -p "${JP_DIR}" && \
 
 #--- Arc Menu extension (not in Fedora repos, build from git) ---
 ARC_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com"
-cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null && \
-    cd ArcMenu && \
-    make build 2>/dev/null && \
-    mkdir -p "${ARC_DIR}" && \
-    cp -r _build/* "${ARC_DIR}/" 2>/dev/null || cp -r * "${ARC_DIR}/" && \
-    mkdir -p "${ARC_DIR}/schemas" && \
-    cp schemas/*.xml "${ARC_DIR}/schemas/" 2>/dev/null && \
-    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/schemas/ 2>/dev/null && \
-    chmod -R a+rX "${ARC_DIR}" && \
-    echo "Arc Menu installed" || echo "WARN: Arc Menu install failed"
+dnf5 install -y glib2-devel make 2>/dev/null || true
+cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null
+if [ -d /tmp/ArcMenu ]; then
+    cd /tmp/ArcMenu
+    mkdir -p "${ARC_DIR}"
+    if make build 2>/dev/null; then
+        cp -r _build/* "${ARC_DIR}/"
+    else
+        # Fallback: copy source files directly (skip .git and build artifacts)
+        cp metadata.json extension.js prefs.js stylesheet.css "${ARC_DIR}/" 2>/dev/null
+        cp -r menulayouts lib data "${ARC_DIR}/" 2>/dev/null
+        cp *.js "${ARC_DIR}/" 2>/dev/null
+    fi
+    # Ensure schemas are compiled
+    mkdir -p "${ARC_DIR}/schemas"
+    cp schemas/*.xml "${ARC_DIR}/schemas/" 2>/dev/null
+    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/schemas/ 2>/dev/null
+    chmod -R a+rX "${ARC_DIR}"
+    echo "Arc Menu installed"
+else
+    echo "WARN: Arc Menu clone failed"
+fi
 rm -rf /tmp/ArcMenu
 
 #--- GNOME dconf defaults ---
@@ -989,10 +1021,9 @@ chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null ||
 
 #--- BruceOS theme system ---
 mkdir -p "${SYSROOT}/etc/bruceos"
-cp /build/config/bruceos-theme.conf "${SYSROOT}/etc/bruceos/theme.conf"
-cp "${SYSROOT}/etc/bruceos/theme.conf" "${SYSROOT}/etc/bruceos/theme.original"
-cp /build/config/bruceos-theme-apply "${SYSROOT}/usr/local/bin/bruceos-theme-apply"
-chmod +x "${SYSROOT}/usr/local/bin/bruceos-theme-apply"
+[ -f /build/config/bruceos-theme.conf ] && cp /build/config/bruceos-theme.conf "${SYSROOT}/etc/bruceos/theme.conf"
+[ -f "${SYSROOT}/etc/bruceos/theme.conf" ] && cp "${SYSROOT}/etc/bruceos/theme.conf" "${SYSROOT}/etc/bruceos/theme.original"
+[ -f /build/config/bruceos-theme-apply ] && cp /build/config/bruceos-theme-apply "${SYSROOT}/usr/local/bin/bruceos-theme-apply" && chmod +x "${SYSROOT}/usr/local/bin/bruceos-theme-apply"
 
 #--- BruceOS emerald accent color overrides ---
 # GTK4
@@ -1068,7 +1099,7 @@ echo "=== Configuring Calamares installer ==="
 
 # Install Calamares settings.conf
 mkdir -p "${SYSROOT}/etc/calamares"
-cp /build/installer/settings.conf "${SYSROOT}/etc/calamares/settings.conf"
+[ -f /build/installer/settings.conf ] && cp /build/installer/settings.conf "${SYSROOT}/etc/calamares/settings.conf"
 
 # Install Calamares module configs
 mkdir -p "${SYSROOT}/etc/calamares/modules"
