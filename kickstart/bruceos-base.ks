@@ -760,15 +760,25 @@ curl -sL https://github.com/somepaulo/MoreWaita/archive/refs/heads/main.tar.gz -
 # Add MoreWaita to BruceOS inheritance chain
 sed -i 's|^Inherits=Adwaita|Inherits=MoreWaita,Adwaita|' "${SYSROOT}/usr/share/icons/BruceOS/index.theme"
 
-#--- DING (Desktop Icons NG) — install in build so it works on live ISO ---
-DING_UUID="ding@rastersoft.com"
-DING_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/${DING_UUID}"
-curl -sfL "https://extensions.gnome.org/download-extension/${DING_UUID}.shell-extension.zip?shell_version=49" -o /tmp/ding.zip && \
-    mkdir -p "${DING_DIR}" && \
-    unzip -qo /tmp/ding.zip -d "${DING_DIR}" && \
-    rm -f /tmp/ding.zip && \
-    chmod -R a+rX "${DING_DIR}" && \
-    echo "DING installed" || echo "WARN: DING install failed"
+#--- DING (Desktop Icons NG) — install from git so it works on live ISO ---
+echo "Installing DING extension..."
+DING_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/ding@rastersoft.com"
+cd /tmp && git clone --depth 1 https://gitlab.com/rastersoft/desktop-icons-ng.git 2>/dev/null
+if [ -d /tmp/desktop-icons-ng ]; then
+    mkdir -p "${DING_DIR}"
+    cp -r /tmp/desktop-icons-ng/* "${DING_DIR}/"
+    chmod -R a+rX "${DING_DIR}"
+    echo "DING installed from git"
+else
+    # Fallback: try GNOME extensions download
+    curl -sfL "https://extensions.gnome.org/extension-data/ding%40rastersoft.com.v75.shell-extension.zip" -o /tmp/ding.zip && \
+        mkdir -p "${DING_DIR}" && \
+        unzip -qo /tmp/ding.zip -d "${DING_DIR}" && \
+        chmod -R a+rX "${DING_DIR}" && \
+        echo "DING installed from extensions.gnome.org" || echo "WARN: DING install failed"
+    rm -f /tmp/ding.zip
+fi
+rm -rf /tmp/desktop-icons-ng
 
 #--- Just Perfection extension (not in Fedora repos) ---
 JP_URL="https://extensions.gnome.org/extension-data/just-perfection-desktop%40just-perfection.v30.shell-extension.zip"
@@ -783,8 +793,8 @@ mkdir -p "${JP_DIR}" && \
     echo "Just Perfection installed" || echo "WARN: Just Perfection install failed"
 
 #--- Arc Menu extension (not in Fedora repos, build from git) ---
+echo "Installing Arc Menu extension..."
 ARC_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com"
-dnf5 install -y glib2-devel make 2>/dev/null || true
 cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null
 if [ -d /tmp/ArcMenu ]; then
     cd /tmp/ArcMenu

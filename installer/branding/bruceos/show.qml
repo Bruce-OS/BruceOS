@@ -7,10 +7,8 @@ import calamares.slideshow 1.0
 Presentation {
     id: presentation
 
-    background: Rectangle { color: "#0a0a0a" }
-
     Timer {
-        interval: 10000
+        interval: 8000
         running: true
         repeat: true
         onTriggered: presentation.goToNextSlide()
@@ -19,62 +17,36 @@ Presentation {
     Slide {
         Rectangle {
             anchors.fill: parent
-            color: "#0a0a0a"
+            color: "#1d1d20"
             ColumnLayout {
                 anchors.centerIn: parent
-                spacing: 24
+                spacing: 20
                 width: parent.width * 0.7
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Welcome to BruceOS"
-                    font.pixelSize: 32
+                    text: "Setting up BruceOS..."
+                    font.family: "Red Hat Display"
+                    font.pixelSize: 28
                     font.bold: true
                     color: "#10b981"
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: "They call me Bruce."
-                    font.pixelSize: 18
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 16
                     font.italic: true
-                    color: "#9ca3af"
+                    color: "#6a6a6e"
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.maximumWidth: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: "An operating system for you.\nAll your favourite apps, gaming that works,\nbuilt-in agents, and a terminal for nerds."
-                    font.pixelSize: 16
-                    color: "#e5e5e5"
-                    lineHeight: 1.5
-                }
-            }
-        }
-    }
-
-    Slide {
-        Rectangle {
-            anchors.fill: parent
-            color: "#0a0a0a"
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 24
-                width: parent.width * 0.7
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Terminal, Reimagined"
-                    font.pixelSize: 28
-                    font.bold: true
-                    color: "#10b981"
-                }
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.maximumWidth: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    text: "Ghostty GPU-accelerated terminal\nFish shell with smart autocomplete\nStarship prompt + Zellij multiplexer\nAll configured out of the box."
-                    font.pixelSize: 16
-                    color: "#e5e5e5"
+                    text: "An operating system that just works.\nAll your favourite apps, gaming, creative tools,\nbuilt-in AI agents, and a terminal for the curious."
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 14
+                    color: "#a1a1a5"
                     lineHeight: 1.6
                 }
             }
@@ -84,14 +56,46 @@ Presentation {
     Slide {
         Rectangle {
             anchors.fill: parent
-            color: "#0a0a0a"
+            color: "#1d1d20"
             ColumnLayout {
                 anchors.centerIn: parent
-                spacing: 24
+                spacing: 20
+                width: parent.width * 0.7
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Your Terminal, Upgraded"
+                    font.family: "Red Hat Display"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#10b981"
+                }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.maximumWidth: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    text: "Ghostty — GPU-accelerated, fast as light\nFish — smart autocomplete, zero config\nStarship — beautiful prompt\nZellij — split panes, sessions"
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 14
+                    color: "#a1a1a5"
+                    lineHeight: 1.8
+                }
+            }
+        }
+    }
+
+    Slide {
+        Rectangle {
+            anchors.fill: parent
+            color: "#1d1d20"
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 20
                 width: parent.width * 0.7
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: "Create & Play"
+                    font.family: "Red Hat Display"
                     font.pixelSize: 28
                     font.bold: true
                     color: "#10b981"
@@ -101,10 +105,11 @@ Presentation {
                     Layout.maximumWidth: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: "Steam, Proton and MangoHud for gaming.\nBlender, GIMP and Krita for artists.\nDaVinci Resolve for video.\nAll pre-configured."
-                    font.pixelSize: 16
-                    color: "#e5e5e5"
-                    lineHeight: 1.6
+                    text: "Steam + Proton — your games, native speed\nBlender, GIMP, Krita — create anything\nDaVinci Resolve — professional video\nAll pre-configured and ready to go"
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 14
+                    color: "#a1a1a5"
+                    lineHeight: 1.8
                 }
             }
         }
@@ -113,14 +118,15 @@ Presentation {
     Slide {
         Rectangle {
             anchors.fill: parent
-            color: "#0a0a0a"
+            color: "#1d1d20"
             ColumnLayout {
                 anchors.centerIn: parent
-                spacing: 24
+                spacing: 20
                 width: parent.width * 0.7
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "AI Built In"
+                    text: "AI That Respects You"
+                    font.family: "Red Hat Display"
                     font.pixelSize: 28
                     font.bold: true
                     color: "#10b981"
@@ -130,10 +136,42 @@ Presentation {
                     Layout.maximumWidth: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: "Pi coding agent in your terminal.\nLocal AI via Ollama — your data stays yours.\nNo cloud. No subscription.\nJust works."
-                    font.pixelSize: 16
-                    color: "#e5e5e5"
-                    lineHeight: 1.6
+                    text: "Pi coding agent in your terminal\nLocal AI via Ollama\nYour data stays on your machine\nNo cloud required"
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 14
+                    color: "#a1a1a5"
+                    lineHeight: 1.8
+                }
+            }
+        }
+    }
+
+    Slide {
+        Rectangle {
+            anchors.fill: parent
+            color: "#1d1d20"
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 20
+                width: parent.width * 0.7
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "Almost there..."
+                    font.family: "Red Hat Display"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#10b981"
+                }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.maximumWidth: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    text: "BruceOS is being installed to your drive.\nThis usually takes a few minutes.\nGrab a coffee — we've got this."
+                    font.family: "Red Hat Text"
+                    font.pixelSize: 14
+                    color: "#a1a1a5"
+                    lineHeight: 1.8
                 }
             }
         }

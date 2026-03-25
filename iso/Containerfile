@@ -17,7 +17,7 @@ RUN dnf install -y \
     grub2-pc grub2-pc-modules \
     shim-x64 syslinux syslinux-nonlinux xorriso \
     librsvg2-tools ImageMagick \
-    git unzip curl \
+    git unzip curl glib2-devel \
     # Looking Glass B7 build deps
     cmake gcc gcc-c++ libglvnd-devel fontconfig-devel \
     spice-protocol make nettle-devel pkgconf-pkg-config binutils-devel \
