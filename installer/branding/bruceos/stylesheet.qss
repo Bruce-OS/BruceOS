@@ -10,6 +10,19 @@ QWidget {
     selection-color: #022c22;
 }
 
+/* Force dark on ALL main areas */
+#mainApp, #mainText, #viewManager, QStackedWidget,
+#scrollAreaWidgetContents, QScrollArea > QWidget,
+#debugButton, QWidget#mainApp > * {
+    background-color: #1d1d20;
+    color: #ffffff;
+}
+
+/* The slideshow/exec page wrapper */
+QWidget#pageWidgetStack, QStackedWidget > QWidget {
+    background-color: #1d1d20;
+}
+
 QLabel {
     background-color: transparent;
     color: #ffffff;

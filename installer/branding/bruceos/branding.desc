@@ -33,7 +33,6 @@ strings:
 images:
     productIcon:         "bruceos-logo.svg"
     productLogo:         "bruceos-logo.svg"
-    productWelcome:      "bruceos-welcome.png"
 
 style:
     SidebarBackground:          "#222226"
