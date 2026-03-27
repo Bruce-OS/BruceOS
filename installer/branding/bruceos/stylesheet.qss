@@ -1,6 +1,6 @@
 /* BruceOS Installer — Clean Minimal Dark */
 
-QWidget {
+* {
     background-color: #1d1d20;
     color: #ffffff;
     font-family: "Red Hat Text", "Noto Sans", sans-serif;
@@ -10,17 +10,11 @@ QWidget {
     selection-color: #022c22;
 }
 
-/* Force dark on ALL main areas */
-#mainApp, #mainText, #viewManager, QStackedWidget,
-#scrollAreaWidgetContents, QScrollArea > QWidget,
-#debugButton, QWidget#mainApp > * {
+QWidget, QMainWindow, QDialog, QFrame, QStackedWidget,
+QScrollArea, QAbstractScrollArea, QAbstractItemView,
+#mainApp, #viewManager, #mainText {
     background-color: #1d1d20;
-    color: #ffffff;
-}
-
-/* The slideshow/exec page wrapper */
-QWidget#pageWidgetStack, QStackedWidget > QWidget {
-    background-color: #1d1d20;
+    border: none;
 }
 
 QLabel {
