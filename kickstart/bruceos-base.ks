@@ -590,15 +590,7 @@ if flatpak info io.github.ungoogled_software.ungoogled_chromium &>/dev/null; the
     echo "Chrome desktop entry created (with WMClass)"
 fi
 
-# --- DING (Desktop Icons NG) ---
-echo "Installing DING extension..."
-DING_UUID="ding@rastersoft.com"
-DING_DEST="/usr/share/gnome-shell/extensions/${DING_UUID}"
-curl -sfL "https://extensions.gnome.org/download-extension/${DING_UUID}.shell-extension.zip?shell_version=49" -o /tmp/ding.zip && \
-    mkdir -p "${DING_DEST}" && \
-    unzip -qo /tmp/ding.zip -d "${DING_DEST}" && \
-    rm -f /tmp/ding.zip && \
-    echo "DING installed" || echo "WARN: DING install failed"
+# --- DING is pre-installed from repo (no first-boot download needed) ---
 
 # --- Pi coding agent ---
 echo "Installing Pi coding agent..."
@@ -760,63 +752,19 @@ curl -sL https://github.com/somepaulo/MoreWaita/archive/refs/heads/main.tar.gz -
 # Add MoreWaita to BruceOS inheritance chain
 sed -i 's|^Inherits=Adwaita|Inherits=MoreWaita,Adwaita|' "${SYSROOT}/usr/share/icons/BruceOS/index.theme"
 
-#--- DING (Desktop Icons NG) — install from git so it works on live ISO ---
-echo "Installing DING extension..."
-DING_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/ding@rastersoft.com"
-cd /tmp && git clone --depth 1 https://gitlab.com/rastersoft/desktop-icons-ng.git 2>/dev/null
-if [ -d /tmp/desktop-icons-ng ]; then
-    mkdir -p "${DING_DIR}"
-    cp -r /tmp/desktop-icons-ng/* "${DING_DIR}/"
-    chmod -R a+rX "${DING_DIR}"
-    echo "DING installed from git"
-else
-    # Fallback: try GNOME extensions download
-    curl -sfL "https://extensions.gnome.org/extension-data/ding%40rastersoft.com.v75.shell-extension.zip" -o /tmp/ding.zip && \
-        mkdir -p "${DING_DIR}" && \
-        unzip -qo /tmp/ding.zip -d "${DING_DIR}" && \
-        chmod -R a+rX "${DING_DIR}" && \
-        echo "DING installed from extensions.gnome.org" || echo "WARN: DING install failed"
-    rm -f /tmp/ding.zip
-fi
-rm -rf /tmp/desktop-icons-ng
-
-#--- Just Perfection extension (not in Fedora repos) ---
-JP_URL="https://extensions.gnome.org/extension-data/just-perfection-desktop%40just-perfection.v30.shell-extension.zip"
-JP_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection"
-mkdir -p "${JP_DIR}" && \
-    curl -sL "${JP_URL}" -o /tmp/jp.zip && \
-    unzip -o /tmp/jp.zip -d "${JP_DIR}/" && \
-    rm -f /tmp/jp.zip && \
-    sed -i 's/"47"/"47","48","49"/' "${JP_DIR}/metadata.json" && \
-    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection/schemas/ 2>/dev/null && \
-    chmod -R a+rX "${JP_DIR}" && \
-    echo "Just Perfection installed" || echo "WARN: Just Perfection install failed"
-
-#--- Arc Menu extension (not in Fedora repos, build from git) ---
-echo "Installing Arc Menu extension..."
-ARC_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com"
-cd /tmp && git clone --depth 1 https://gitlab.com/arcmenu/ArcMenu.git 2>/dev/null
-if [ -d /tmp/ArcMenu ]; then
-    cd /tmp/ArcMenu
-    mkdir -p "${ARC_DIR}"
-    if make build 2>/dev/null; then
-        cp -r _build/* "${ARC_DIR}/"
+#--- GNOME Shell extensions (pre-built, copied from repo) ---
+echo "Installing GNOME Shell extensions from repo..."
+for EXT in ding@rastersoft.com just-perfection-desktop@just-perfection arcmenu@arcmenu.com; do
+    if [ -d /build/extensions/${EXT} ]; then
+        EXT_DIR="${SYSROOT}/usr/share/gnome-shell/extensions/${EXT}"
+        mkdir -p "${EXT_DIR}"
+        cp -r /build/extensions/${EXT}/* "${EXT_DIR}/"
+        chmod -R a+rX "${EXT_DIR}"
+        echo "  ${EXT} installed"
     else
-        # Fallback: copy source files directly (skip .git and build artifacts)
-        cp metadata.json extension.js prefs.js stylesheet.css "${ARC_DIR}/" 2>/dev/null
-        cp -r menulayouts lib data "${ARC_DIR}/" 2>/dev/null
-        cp *.js "${ARC_DIR}/" 2>/dev/null
+        echo "  WARN: ${EXT} not found in /build/extensions/"
     fi
-    # Ensure schemas are compiled
-    mkdir -p "${ARC_DIR}/schemas"
-    cp schemas/*.xml "${ARC_DIR}/schemas/" 2>/dev/null
-    chroot "${SYSROOT}" glib-compile-schemas /usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/schemas/ 2>/dev/null
-    chmod -R a+rX "${ARC_DIR}"
-    echo "Arc Menu installed"
-else
-    echo "WARN: Arc Menu clone failed"
-fi
-rm -rf /tmp/ArcMenu
+done
 
 #--- GNOME dconf defaults ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
