@@ -37,3 +37,11 @@ __pycache__/
 
 # Serena (MCP plugin state)
 .serena/
+anaconda/
+output/
+*.log
+*.qcow2
+dconf-backup.txt
+vm-dconf-dump.txt
+bruceos-master.qcow2
+bruceos-rootfs.squashfs
