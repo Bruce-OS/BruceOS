@@ -12,9 +12,13 @@
 
 QWidget, QMainWindow, QDialog, QFrame, QStackedWidget,
 QScrollArea, QAbstractScrollArea, QAbstractItemView,
-#mainApp, #viewManager, #mainText {
+QQuickWidget, QQuickView,
+#mainApp, #viewManager, #mainText,
+#exec_page, #slideshow {
     background-color: #1d1d20;
     border: none;
+    padding: 0;
+    margin: 0;
 }
 
 QLabel {
