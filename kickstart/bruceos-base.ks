@@ -716,6 +716,15 @@ if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; 
     cp "$LOGO" "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
 fi
 
+# Fallback: ensure bruceos icon exists in hicolor even without rsvg-convert
+if [ ! -f "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg" ]; then
+    mkdir -p "${SYSROOT}/usr/share/icons/hicolor/scalable/apps"
+    if [ -f /build/theme/bruceos-logo.svg ]; then
+        cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg"
+        cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
+    fi
+fi
+
 #--- Custom icon overrides (map existing icons to app desktop IDs) ---
 BICONS="${SYSROOT}/usr/share/icons/BruceOS/scalable/apps"
 if [ -d "$BICONS" ]; then
@@ -770,13 +779,11 @@ done
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cp /build/config/dconf-defaults.ini "${SYSROOT}/etc/dconf/db/local.d/01-bruceos"
 
-# Override for live ISO: installer-only dock, no disabled-extensions noise
-cat >> "${SYSROOT}/etc/dconf/db/local.d/01-bruceos" << 'DCONFEOF'
-
-# Live ISO overrides (post-install replaces these)
+# Live ISO overrides in separate file (higher priority, post-install removes this)
+cat > "${SYSROOT}/etc/dconf/db/local.d/02-bruceos-live" << 'LIVEEOF'
 [org/gnome/shell]
 favorite-apps=['install-bruceos.desktop']
-DCONFEOF
+LIVEEOF
 
 # Lock dark mode
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d/locks"
