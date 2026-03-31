@@ -18,9 +18,9 @@ const { frontmatter } = useData()
 
 <style scoped>
 .screenshot-wrapper {
-  max-width: 960px;
+  max-width: 1152px;
   margin: 0 auto;
-  padding: 0 1.5rem 2rem;
+  padding: 0 1.5rem 3rem;
 }
 .screenshot {
   width: 100%;
