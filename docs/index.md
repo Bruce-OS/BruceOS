@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Download ISO
-      link: https://github.com/Bruce-OS/BruceOS/releases/latest/download/BruceOS-1.0-x86_64.iso
+      link: https://github.com/Bruce-OS/BruceOS/releases/latest
     - theme: alt
       text: Get Started
       link: /guide/getting-started
