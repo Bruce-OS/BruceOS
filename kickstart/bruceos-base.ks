@@ -716,14 +716,11 @@ if [ -f /build/theme/bruceos-logo.svg ] && command -v rsvg-convert &>/dev/null; 
     cp "$LOGO" "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
 fi
 
-# Fallback: ensure bruceos icon exists in hicolor even without rsvg-convert
-if [ ! -f "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg" ]; then
-    mkdir -p "${SYSROOT}/usr/share/icons/hicolor/scalable/apps"
-    if [ -f /build/theme/bruceos-logo.svg ]; then
-        cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg"
-        cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg"
-    fi
-fi
+# ALWAYS ensure bruceos icon exists in hicolor (Arc Menu needs it)
+mkdir -p "${SYSROOT}/usr/share/icons/hicolor/scalable/apps"
+cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos.svg" 2>/dev/null || true
+cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/icons/hicolor/scalable/apps/bruceos-logo.svg" 2>/dev/null || true
+cp /build/theme/bruceos-logo.svg "${SYSROOT}/usr/share/pixmaps/bruceos-logo.svg" 2>/dev/null || true
 
 #--- Custom icon overrides (map existing icons to app desktop IDs) ---
 BICONS="${SYSROOT}/usr/share/icons/BruceOS/scalable/apps"
