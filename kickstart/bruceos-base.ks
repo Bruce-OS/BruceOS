@@ -775,6 +775,13 @@ for EXT in ding@rastersoft.com just-perfection-desktop@just-perfection arcmenu@a
     fi
 done
 
+#--- dconf profile (CRITICAL: tells dconf to read system defaults) ---
+mkdir -p "${SYSROOT}/etc/dconf/profile"
+cat > "${SYSROOT}/etc/dconf/profile/user" << 'PROFILEEOF'
+user-db:user
+system-db:local
+PROFILEEOF
+
 #--- GNOME dconf defaults (exact copy from dev VM) ---
 mkdir -p "${SYSROOT}/etc/dconf/db/local.d"
 cp /build/config/dconf-defaults.ini "${SYSROOT}/etc/dconf/db/local.d/01-bruceos"
@@ -813,9 +820,6 @@ cat > "${SYSROOT}/var/lib/gdm/.config/gtk-4.0/gtk.css" << 'GDMCSS'
 @define-color accent_fg_color #ffffff;
 GDMCSS
 chroot "${SYSROOT}" chown -R gdm:gdm /var/lib/gdm/.config 2>/dev/null || true
-
-# Compile dconf
-chroot "${SYSROOT}" dconf update || true
 
 # Flatpak dark mode
 chroot "${SYSROOT}" flatpak override --env=GTK_THEME=Adwaita:dark 2>/dev/null || true
@@ -968,6 +972,9 @@ polkit.addRule(function(action, subject) {
 POLKITEOF
 
 echo "=== Calamares installer configured ==="
+
+echo "=== Compiling dconf database (MUST be last) ==="
+chroot "${SYSROOT}" dconf update || true
 
 echo "=== BruceOS GNOME desktop configured ==="
 %end
