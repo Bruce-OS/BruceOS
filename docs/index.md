@@ -33,3 +33,7 @@ features:
     title: Creative Tools
     details: Blender, GIMP, Krita, DaVinci Resolve. All there.
 ---
+
+<div style="max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem;">
+  <img src="/screenshot.png" alt="BruceOS Desktop" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+</div>
