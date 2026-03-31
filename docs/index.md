@@ -33,5 +33,3 @@ features:
     title: Creative Tools
     details: Blender, GIMP, Krita, DaVinci Resolve. All there.
 ---
-
-<HomeScreenshot />
